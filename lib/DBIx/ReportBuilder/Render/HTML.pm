@@ -1,5 +1,5 @@
 # $File: //member/autrijus/DBIx-ReportBuilder/lib/DBIx/ReportBuilder/Render/HTML.pm $ $Author: autrijus $
-# $Revision: #4 $ $Change: 8063 $ $DateTime: 2003/09/12 01:08:45 $
+# $Revision: #5 $ $Change: 8070 $ $DateTime: 2003/09/12 01:49:30 $
 
 package DBIx::ReportBuilder::Render::HTML;
 use base 'DBIx::ReportBuilder::Render';
@@ -15,6 +15,7 @@ sub new {
 	    content	=> \&section,
 	    footer	=> \&section,
 	    postamble   => \&section,
+	    graph	=> sub { $_[0]->plotGraph($_[1]) },
 	},
 	pretty_print	=> ($args{pretty_print} || 'none'),
     );

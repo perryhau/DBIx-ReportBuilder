@@ -1,8 +1,8 @@
 # $File: //member/autrijus/DBIx-ReportBuilder/lib/DBIx/ReportBuilder.pm $ $Author: autrijus $
-# $Revision: #24 $ $Change: 8064 $ $DateTime: 2003/09/12 01:11:07 $
+# $Revision: #28 $ $Change: 8088 $ $DateTime: 2003/09/13 00:24:02 $
 
 package DBIx::ReportBuilder;
-$DBIx::ReportBuilder::VERSION = '0.00_06';
+$DBIx::ReportBuilder::VERSION = '0.00_07';
 
 use strict;
 no warnings 'redefine';
@@ -16,8 +16,8 @@ DBIx::ReportBuilder - Interactive SQL report generator
 
 =head1 VERSION
 
-This document describes version 0.00_06 of DBIx::ReportBuilder, released
-September 12, 2003.
+This document describes version 0.00_07 of DBIx::ReportBuilder, released
+September 13, 2003.
 
 =head1 SYNOPSIS
 
@@ -120,6 +120,7 @@ sub new {
     my %args = @_;
     my $self = $class->SUPER::new(
 	twig_handlers => {
+	    (map { $_ => sub { $_->set_id($_[0]->NextSection) } } $class->Sections),
 	    (map { $_ => sub { $_->set_id($_[0]->NextPart) } } $class->Parts),
 	    (map { $_ => sub { $_->set_id($_[0]->NextClause) } } $class->Clauses),
 	},
@@ -176,9 +177,15 @@ sub NewHandle {
     return $obj;
 }
 
-sub NewGraph {
+sub GraphObj {
     my $self = shift;
     return eval { $self->spawn(Graph => @_) };
+}
+
+sub SearchObj {
+    my ($self, %args) = @_;
+    $args{Handle} ||= $self->Handle or return;
+    return eval { $self->spawn(Search => %args) };
 }
 
 sub RenderObj {
@@ -196,6 +203,7 @@ sub Reload {
     my $self = shift;
     $self->Parse($self->sprint);
     $self->ResetCounts;
+    $self->VarObj->Reload;
     return $self;
 }
 
@@ -203,6 +211,8 @@ sub Recount {
     my $self = shift;
     my $root = $self->root;
 
+    $_->set_id($self->NextSection) for sort { $a->cmp($b) }
+	map { $root->descendants($_) } $self->Sections;
     $_->set_id($self->NextPart) for sort { $a->cmp($b) }
 	map { $root->descendants($_) } $self->Parts;
     $_->set_id($self->NextClause) for sort { $a->cmp($b) }
@@ -214,15 +224,18 @@ sub Recount {
     return ($self->PartId, $self->ClauseId);
 }
 
-sub Part   { +shift->_do(Part => @_) }
-sub Clause { +shift->_do(Clause => @_) }
+sub Section { +shift->_do(Section => @_) }
+sub Part    { +shift->_do(Part => @_) }
+sub Clause  { +shift->_do(Clause => @_) }
 
-sub PartObj   { +shift->_obj(Part => @_) }
-sub ClauseObj { +shift->_obj(Clause => @_) }
+sub SectionObj { +shift->_obj(Section => @_) }
+sub PartObj    { +shift->_obj(Part => @_) }
+sub ClauseObj  { +shift->_obj(Clause => @_) }
 
-sub NextPart   { 'Part' . ++$_[0]{next_part} }
-sub NextClause { 'Clause' . ++$_[0]{next_clause} }
-sub ResetCounts { $_[0]{next_part} = $_[0]{next_clause} = 0 }
+sub NextSection { 'Section' . ++$_[0]{next_section} }
+sub NextPart    { 'Part' . ++$_[0]{next_part} }
+sub NextClause  { 'Clause' . ++$_[0]{next_clause} }
+sub ResetCounts { @{$_[0]}{$_} = 0 for qw(next_section next_part next_clause) }
 
 sub SectionId {
     my $self = shift;
@@ -291,10 +304,13 @@ sub Vars {
     return map $self->ucase($_), $self->VarObj->Vars;
 }
 
-sub Var		    { +shift->VarObj(+shift)->Value }
-sub RemoveVar	    { +shift->VarObj(+shift)->Remove(@_) } 
-sub SetVar	    { +shift->VarObj(+shift)->SetValue(@_) }
-sub SetVarDefault   { +shift->VarObj(+shift)->SetDefaultValue(@_) }
+sub Var		      { +shift->VarObj(+shift)->Value }
+sub VarDefault	      { +shift->VarObj(+shift)->DefaultValue }
+sub VarDescription    { +shift->VarObj(+shift)->Description }
+sub RemoveVar	      { +shift->VarObj(+shift)->Remove(@_) } 
+sub SetVar	      { +shift->VarObj(+shift)->SetValue(@_) }
+sub SetVarDefault     { +shift->VarObj(+shift)->SetDefaultValue(@_) }
+sub SetVarDescription { +shift->VarObj(+shift)->SetDescription(@_) }
 
 sub VarInsert {
     my ($self, $var) = @_;

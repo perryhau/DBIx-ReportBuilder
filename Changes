@@ -1,4 +1,68 @@
 ____________________________________________________________________________
+[  8090] By: autrijus                              on 2003/09/13  00:24:46
+        Log: * This be 0.00_07
+	   ! MANIFEST
+____________________________________________________________________________
+[  8088] By: autrijus                              on 2003/09/13  00:24:02
+        Log: * variables now no longer expires their current value upon
+             dump/restore; you have to call ->Reload explicitly to revert
+             them to default values.
+	   ! lib/DBIx/ReportBuilder.pm lib/DBIx/ReportBuilder/Variable.pm
+____________________________________________________________________________
+[  8086] By: autrijus                              on 2003/09/12  23:37:14
+        Log: * add Var->IsUserDefined to distinguish immutable cells from mutable ones.
+	   ! lib/DBIx/ReportBuilder/Variable.pm
+____________________________________________________________________________
+[  8085] By: autrijus                              on 2003/09/12  23:33:34
+        Log: * add variable descriptions.
+	   ! lib/DBIx/ReportBuilder/Variable.pm t/1-basic.t
+____________________________________________________________________________
+[  8084] By: autrijus                              on 2003/09/12  23:33:10
+        Log: * silence uninitialized warnings.
+	   ! lib/DBIx/ReportBuilder/Render/Edit.pm
+____________________________________________________________________________
+[  8082] By: autrijus                              on 2003/09/12  23:19:14
+        Log: * fix isapplicable subroutines for graph attributes.
+	   ! lib/DBIx/ReportBuilder/Attribute.pm
+____________________________________________________________________________
+[  8081] By: autrijus                              on 2003/09/12  22:59:29
+        Log: * ->NewGraph is now ->GraphObj.
+             * ->SearchObj and ->SectionObj added.
+	   + lib/DBIx/ReportBuilder/Section.pm
+	   ! lib/DBIx/ReportBuilder.pm lib/DBIx/ReportBuilder/Attribute.pm
+	   ! lib/DBIx/ReportBuilder/Render.pm
+	   ! lib/DBIx/ReportBuilder/Render/Edit.pm t/1-basic.t
+____________________________________________________________________________
+[  8078] By: autrijus                              on 2003/09/12  19:10:30
+        Log: * correctly display fields2 on join clauses.
+	   ! lib/DBIx/ReportBuilder/Attribute.pm t/1-basic.t
+____________________________________________________________________________
+[  8075] By: autrijus                              on 2003/09/12  17:31:20
+        Log: * die with more information when png conversion fails.
+	   ! lib/DBIx/ReportBuilder/Part.pm
+____________________________________________________________________________
+[  8070] By: autrijus                              on 2003/09/12  01:49:30
+        Log: * show graph on HTML too.
+	   ! lib/DBIx/ReportBuilder/Render.pm
+	   ! lib/DBIx/ReportBuilder/Render/Edit.pm
+	   ! lib/DBIx/ReportBuilder/Render/HTML.pm
+____________________________________________________________________________
+[  8066] By: autrijus                              on 2003/09/12  01:28:46
+        Log: * more debug.
+	   ! lib/DBIx/ReportBuilder/Graph/GD.pm
+____________________________________________________________________________
+[  8065] By: autrijus                              on 2003/09/12  01:26:36
+        Log: * see warnings.
+	   ! lib/DBIx/ReportBuilder.pm t/1-basic.t
+____________________________________________________________________________
+[  8064] By: autrijus                              on 2003/09/12  01:11:07
+        Log: * be 5.6.1 friendly.
+	   ! lib/DBIx/ReportBuilder.pm
+____________________________________________________________________________
+[  8063] By: autrijus                              on 2003/09/12  01:08:45
+        Log: * two oops in one.
+	   ! lib/DBIx/ReportBuilder/Render/HTML.pm t/1-basic.t
+____________________________________________________________________________
 [  8062] By: autrijus                              on 2003/09/12  01:05:14
         Log: * This be 0.00_06.
 	   ! MANIFEST lib/DBIx/ReportBuilder.pm

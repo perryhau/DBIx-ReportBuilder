@@ -1,5 +1,5 @@
 # $File: //member/autrijus/DBIx-ReportBuilder/lib/DBIx/ReportBuilder/Attribute.pm $ $Author: autrijus $
-# $Revision: #16 $ $Change: 8060 $ $DateTime: 2003/09/12 00:58:49 $
+# $Revision: #19 $ $Change: 8082 $ $DateTime: 2003/09/12 23:19:14 $
 
 package DBIx::ReportBuilder::Attribute;
 use strict;
@@ -14,7 +14,6 @@ sub Tag	    { $_[0]{Tag} }
 sub Object  { $_[0]{Object} }
 sub Name    { $_[0]->Object->ucase($_[0]{Att}) }
 sub Type    { $_[0]->Data->{$_[0]->{Att}}->{type} }
-sub Default { $_[0]->Data->{$_[0]->{Att}}->{default} }
 sub ReportBuilderObj { $_[0]->Object->twig }
 
 sub Value {
@@ -43,6 +42,12 @@ sub Attributes {
 
 sub Values {
     my $rv = $_[0]->Data->{$_[0]->{Att}}->{values} or return;
+    return $rv->($_[0]) if UNIVERSAL::isa($rv => 'CODE');
+    return wantarray ? @$rv : $rv;
+}
+
+sub Default {
+    my $rv = $_[0]->Data->{$_[0]->{Att}}->{default} or return;
     return $rv->($_[0]) if UNIVERSAL::isa($rv => 'CODE');
     return wantarray ? @$rv : $rv;
 }
@@ -82,7 +87,7 @@ use constant Data => {
     field		=> {
 	type		=> 'select',
 	values		=> \&_fields,
-#	applicable	=> sub { $_[0]->att('table') },
+	applicable	=> sub { $_[0]->Object->att('table') },
     },
     field2		=> {
 	type		=> 'select',
@@ -126,9 +131,10 @@ use constant Data => {
     table		=> {
 	type		=> 'select',
 	values		=> \&_tables,
+	default		=> sub { $_[0]->Object->parent->parent->att('table') },
     },
     table2		=> {
-	type		=> '',
+	type		=> 'select',
 	values		=> \&_tables2,
     },
     text		=> {
@@ -146,16 +152,16 @@ use constant Data => {
     style	=> {
 	type		=> 'select',
 	values		=> sub {
-	    ($_[0]->Object->att('type') eq 'bars')
+	    ($_[0]->Object->att('shape') eq 'bars')
 		? qw(bar cylinder)
 		: qw(line dots)
 	},
-	disabled	=> sub { $_[0]->Object->att('type') eq 'pie' },
+	applicable	=> \&_is_axis,
 	default		=> 'bar',
     },
     legend	=> {
 	type		=> 'boolean',
-	disabled	=> sub { $_[0]->Object->att('type') eq 'pie' },
+	applicable	=> \&_is_axis,
 	default		=> 0,
     },
     (map { substr($_, 0, 1) . '_margin' => {
@@ -173,21 +179,21 @@ use constant Data => {
     (map { $_."_font" => {
 	type		=> 'select',
 	values		=> [qw(ming kai)],
-	disabled	=> sub { $_[0]->Object->att('type') eq 'pie' },
+	applicable	=> \&_is_axis,
  	default		=> 'ming'},
 	   $_."_fontsize" => {
 	type		=> 'number',
-	disabled	=> sub { $_[0]->Object->att('type') eq 'pie' },
+	applicable	=> \&_is_axis,
 	default		=> 12,
      } }  qw(x_label y_label x_axis y_axis values)),
     (map { $_."_font" => {
 	type		=> 'select',
 	values		=> [qw(ming kai)],
-	disabled	=> sub { $_[0]->Object->att('type') ne 'pie' },
+	applicable	=> \&_is_axis,
  	default		=> 'ming'},
 	   $_."_fontsize" => {
 	type		=> 'number',
-	disabled	=> sub { $_[0]->Object->att('type') ne 'pie' },
+	applicable	=> \&_is_axis,
 	default		=> 12,
      } } qw(label value)),
     accentclr	=> {
@@ -202,7 +208,7 @@ use constant Data => {
     },
     cumulate	=> {
 	type		=> 'boolean',
-	disabled	=> sub { $_[0]->Object->att('type') ne 'bars' },
+	applicable	=> sub { $_[0]->Object->att('shape') eq 'bars' },
 	default		=> 0,
     },
     show_values	=> {
@@ -211,7 +217,7 @@ use constant Data => {
     },
     values_vertical	=> {
 	type		=> 'boolean',
-	disabled	=> sub { $_[0]->Object->att('show_values') },
+	applicable	=> sub { $_[0]->Object->att('show_values') },
 	default		=> 0,
     },
     rotate_chart	=> {
@@ -224,7 +230,7 @@ use constant Data => {
     },
     threed_shading	=> {
 	type		=> 'boolean',
-	disabled	=> sub { $_[0]->Object->att('threed') },
+	applicable	=> sub { $_[0]->Object->att('threed') },
 	default		=> 1,
     },
 };
@@ -241,9 +247,9 @@ use constant Attribute2Tags => do {
 sub _fonts { 'serif', 'sans serif', 'monotype' }
 sub _fields {
     my $self = shift;
-    my $table = shift;
-    my $obj = $self->Object->parent->parent;
-    $table ||= $obj->att('table') or return;
+    my $att  = shift || 'table';
+    my $obj  = $self->Object;
+    my $table = $obj->att($att) or $obj->parent->parent->att($att) or return;
     my $dbh = $self->ReportBuilderObj->Handle->dbh;
     my $driver = $dbh->{Driver}{Name};
 
@@ -266,7 +272,7 @@ sub _fields {
 }
 sub _fields2 {
     my $self = shift;
-    return $self->_fields( $self->Object->att('table2') || 'templates' );
+    return $self->_fields( 'table2' );
 }
 sub _tables {
     my $self = shift;
@@ -274,5 +280,7 @@ sub _tables {
 	$self->ReportBuilderObj->Handle->dbh->tables;
 }
 sub _tables2 { goto &_tables }
+
+sub _is_axis { $_[0]->Object->att('shape') ne 'pie' }
 
 1;

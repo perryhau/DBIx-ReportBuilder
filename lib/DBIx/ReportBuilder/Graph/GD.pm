@@ -1,5 +1,5 @@
 # $File: //member/autrijus/DBIx-ReportBuilder/lib/DBIx/ReportBuilder/Graph/GD.pm $ $Author: autrijus $
-# $Revision: #2 $ $Change: 8058 $ $DateTime: 2003/09/11 22:21:42 $
+# $Revision: #4 $ $Change: 8077 $ $DateTime: 2003/09/12 18:11:45 $
 
 package DBIx::ReportBuilder::Graph::GD;
 use base 'DBIx::ReportBuilder::Graph';
@@ -38,7 +38,7 @@ sub new {
     $args{'3d'}         = delete($args{threed});
     $args{'3d_shading'} = delete($args{threed_shading});
 
-    my $graph = $class->make_gd(%args);
+    my $graph = $class->make_gd(%args) or return;
 
     $graph->set(%args, title => $class->escape($args{text}));
     $graph->set(map { ("${_}clr" => 'black') } $class->Widgets);
@@ -88,7 +88,7 @@ sub Plot {
 	$axis->apply_to($graph);
     }
 
-    return $graph->plot([ $args{labels}, @{$args{data}} ])->png;
+    return eval { $graph->plot([ $args{labels}, @{$args{data}} ])->png };
 }
 
 sub get_shape {
@@ -119,7 +119,9 @@ sub make_gd {
 
     no strict 'refs';
     require "GD/Graph/$shape.pm";
-    return "GD::Graph::$shape"->new($args{width}, $args{height});
+    return "GD::Graph::$shape"->new($args{width}, $args{height})
+	    || die "Cannot make $shape.pm";
+    
 }
 
 #sub AUTOLOAD {

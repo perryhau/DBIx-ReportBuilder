@@ -1,5 +1,5 @@
 # $File: //member/autrijus/DBIx-ReportBuilder/lib/DBIx/ReportBuilder/Variable.pm $ $Author: autrijus $
-# $Revision: #2 $ $Change: 8047 $ $DateTime: 2003/09/11 00:35:14 $
+# $Revision: #5 $ $Change: 8088 $ $DateTime: 2003/09/13 00:24:02 $
 
 package DBIx::ReportBuilder::Variable;
 use strict;
@@ -14,6 +14,17 @@ sub new {
 sub Var	    { $_[0]{Var} }
 sub Object  { $_[0]{Object} }
 sub Name    { $_[0]->Object->ucase($_[0]{Var}) }
+
+sub IsUserDefined {
+    my $self = shift;
+    my $meta = $self->MetaObj($self->Var) or return;
+    return !$meta->att('auto');
+}
+
+sub Reload {
+    my $self = shift;
+    $_->del_att('value') for $self->MetaObj;
+}
 
 sub Vars {
     my $self = shift;
@@ -35,16 +46,23 @@ sub SetDefaultValue {
 
 sub Remove {
     my $self = shift;
-    my $meta = $self->MetaObj($self->Var) or return;
-    $meta->delete unless $meta->att('auto');
+    return unless $self->IsUserDefined;
+    $self->MetaObj($self->Var)->delete;
+}
+
+sub Description { 
+    my $self = shift;
+    my $var  = $self->Var;
+    my $meta = $self->MetaObj($var) or return;
+    return $meta->att('description');
 }
 
 sub Value {
     my ($self, $default_only) = @_;
     my $var  = $self->Var;
     my $meta = $self->MetaObj($var);
-    return $meta->att('#value')
-	if $meta and !$default_only and exists $meta->atts->{'#value'};
+    return $meta->att('value')
+	if $meta and !$default_only and exists $meta->atts->{'value'};
     return $meta->att('content')
 	if $meta and !$meta->att('auto');
     return $self->$var if $self->can($var);
@@ -70,8 +88,17 @@ sub SetValue {
 
     return if $as_default and $meta->att('auto');
 
-    my $att = ($as_default ? 'content' : '#value');
+    my $att = ($as_default ? 'content' : 'value');
     $meta->set_att(name => $var, $att => $value);
+    return $self;
+}
+
+sub SetDescription { 
+    my $self = shift;
+    my $val  = shift;
+    return unless $self->IsUserDefined;
+
+    $self->MetaObj($self->Var)->set_att('description', $val);
     return $self;
 }
 

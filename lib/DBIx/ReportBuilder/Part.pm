@@ -1,5 +1,5 @@
 # $File: //member/autrijus/DBIx-ReportBuilder/lib/DBIx/ReportBuilder/Part.pm $ $Author: autrijus $
-# $Revision: #10 $ $Change: 8059 $ $DateTime: 2003/09/11 23:13:12 $
+# $Revision: #11 $ $Change: 8075 $ $DateTime: 2003/09/12 17:31:20 $
 
 package DBIx::ReportBuilder::Part;
 
@@ -147,7 +147,7 @@ sub _ConvertToPNG {
     $img->Read($tmpfile);
     $img->Write("$tmpfile.png");
 
-    open $tmpfh, "$tmpfile.png" or die $!;
+    open $tmpfh, "$tmpfile.png" or die "Can't open $tmpfile.png: $!";
     binmode($tmpfh);
     $$ref = do { local $/; <$tmpfh> };
     close $tmpfh;

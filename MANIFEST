@@ -34,6 +34,7 @@ lib/DBIx/ReportBuilder/Render/PDF.pm
 lib/DBIx/ReportBuilder/Render/SXW.pm
 lib/DBIx/ReportBuilder/Render/XML.pm
 lib/DBIx/ReportBuilder/Search.pm
+lib/DBIx/ReportBuilder/Section.pm
 lib/DBIx/ReportBuilder/Variable.pm
 t/0-signature.t
 t/1-basic.t

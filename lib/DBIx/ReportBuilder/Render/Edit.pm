@@ -1,5 +1,5 @@
 # $File: //member/autrijus/DBIx-ReportBuilder/lib/DBIx/ReportBuilder/Render/Edit.pm $ $Author: autrijus $
-# $Revision: #11 $ $Change: 8060 $ $DateTime: 2003/09/12 00:58:49 $
+# $Revision: #16 $ $Change: 8084 $ $DateTime: 2003/09/12 23:33:10 $
 
 package DBIx::ReportBuilder::Render::Edit;
 use base 'DBIx::ReportBuilder::Render';
@@ -112,7 +112,7 @@ sub clause {
 sub twigTable {
     my $self    = shift;
     my $part    = shift or return;
-    my $part_id = shift || $self->Object->PartId;
+    my $part_id = shift || $part->id;
     my $clause_cur = $self->Object->ClauseId;
 
     my $cnt = 0;
@@ -138,15 +138,19 @@ sub twigTable {
 
     foreach my $item (@$clauses) {
 	foreach my $clause ($item->children) {
+	    no warnings 'uninitialized';
 	    my $th = $tbody->insert_new_elt(last_child => 'tr')
 		  ->insert_new_elt('th',
 		      { bgcolor => 'gray', colspan => ($cnt || 1),
 		        align => 'left', style => 'font-size: small' });
 	    $th->set_text( join(
 		', ',
-		( map { uc($_) . " => '" . $clause->att($_) . "'" }
-		    sort grep !/^id$/, $clause->att_names ),
-		( ($clause->tag eq 'limit') ? "VALUE = '" . $clause->text ."'" : () ),
+		map {
+		    $self->Object->loc($self->Object->ucase($_)) .
+			" => '" .
+		    (($_ eq 'text') ? $clause->text : $clause->att($_)) .
+			"'"
+		} $self->Object->Atts($clause->tag)
 	    ) );
 	    $th->insert_new_elt($self->type_icon($clause->tag, 'left'));
 	    $th->set_id($clause->id);
@@ -167,33 +171,7 @@ sub twigGraph {
 	'border'    => '3',
     );
 
-    my $graph = $self->Object->NewGraph(
-	%{ $item->atts },
-	width  => 400,
-	height => 300,
-    ) or return;
-    my $png = $graph->Plot(
-	labels	=> $item->att('#Headers'),
-	data	=> $item->att('#Result'),
-    );
-
-    $item->insert_new_elt( div => { align => 'center' })
-	 ->insert_new_elt( img => { src => $self->Object->encode_src($png) }) if $png;
-=comment
-
-    my $result = $args->{table}->get_result;
-    my $fields = [ keys %{$args2->{descr}} ];
-
-    # outrageous transform
-    my $val = [
-        map { my $fld = $_; [ map {$_->{$fld} || 0} @$result ] }
-            ($args2->{xaxfld}, grep { $_ ne $args2->{xaxfld} } @{$fields})
-    ];
-
-    my $g = RG::Graph->new($args2->{type}, $args2);
-    my $gd = $g->plot($val, $fields); # or return; # die $!;
-
-=cut
+    $self->plotGraph($item);
 }
 
 sub part {
@@ -263,10 +241,9 @@ sub img {
 
 sub var {
     my $self = shift;
-    $_->set_text( $self->Object->Var( $_->att('name')) );
-    $_->set_tag('span');
-    $_->set_att('style' => 'background: gray');
-    $_->del_att('name');
+    my $item = $_;
+    $self->NEXT::var(@_);
+    $item->set_att('style' => 'background: gray');
 }
 
 sub inContent { $_[0]->{in_content} || 0 }

@@ -1,5 +1,5 @@
 # $File: //member/autrijus/DBIx-ReportBuilder/lib/DBIx/ReportBuilder/Render.pm $ $Author: autrijus $
-# $Revision: #15 $ $Change: 8060 $ $DateTime: 2003/09/12 00:58:49 $
+# $Revision: #18 $ $Change: 8081 $ $DateTime: 2003/09/12 22:59:29 $
 
 package DBIx::ReportBuilder::Render;
 
@@ -167,8 +167,7 @@ sub graph {
 
 sub search {
     my $self = shift;
-    my $Handle = $self->Object->Handle or die "No Handle";
-    my $SB = $self->BaseClass->spawn(Search => ( Handle => $Handle ));
+    my $SB = $self->Object->SearchObj or die "Cannot make Search";
     $SB->{table} = $_->att('table');
     $SB->UnLimit;
 
@@ -243,13 +242,33 @@ sub meta { $_->delete }
 sub var {
     my $self = shift;
     my $item = $_;
-    XML::Twig::Elt->new( '#PCDATA' => $item->att('name') )->replace($item);
+    $item->set_text( $self->Object->Var( $item->att('name')) );
+    $item->set_tag('span');
+    $item->del_att('name');
 }
 
 sub include {
     XML::Twig::Elt->parse(
 	$_[0]->Object->render_report($_->att('report'))
     )->replace($_);
+}
+
+sub plotGraph {
+    my ($self, $item) = @_;
+
+    my $graph = $self->Object->GraphObj(
+	%{ $item->atts },
+	width  => 400,
+	height => 300,
+    ) or return;
+
+    my $png = $graph->Plot(
+	labels	=> $item->att('#Headers'),
+	data	=> $item->att('#Result'),
+    ) or return;
+
+    $item->insert_new_elt(div => { align => 'center' })
+	 ->insert_new_elt(img => { src => $self->Object->encode_src($png) });
 }
 
 1;

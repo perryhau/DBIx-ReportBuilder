@@ -1,7 +1,7 @@
 # $File: //member/autrijus/DBIx-ReportBuilder/t/1-basic.t $ $Author: autrijus $
-# $Revision: #28 $ $Change: 8063 $ $DateTime: 2003/09/12 01:08:45 $
+# $Revision: #33 $ $Change: 8091 $ $DateTime: 2003/09/13 00:25:50 $
 
-use Test::More tests => 165;
+use Test::More tests => 172;
 use FindBin;
 
 use strict;
@@ -30,9 +30,12 @@ my $obj = eval {
 
 isa_ok($obj, 'DBIx::ReportBuilder');
 isa_ok($obj->Handle, 'DBIx::SearchBuilder::Handle');
-isa_ok($obj->RenderObj, 'DBIx::ReportBuilder::Render');
-isa_ok($obj->PartObj, 'DBIx::ReportBuilder::Part::P');
+isa_ok($obj->PartObj, 'DBIx::ReportBuilder::Part', 'PartObj');
+isa_ok($obj->SectionObj, 'DBIx::ReportBuilder::Section', 'SectionObj');
+isa_ok($obj->SearchObj, 'DBIx::ReportBuilder::Search', 'SearchObj');
+isa_ok($obj->RenderObj, 'DBIx::ReportBuilder::Render', 'RenderObj');
 is($obj->ClauseObj, undef, 'ClauseObj is undefined');
+is($obj->GraphObj, undef, 'GraphObj is undefined');
 
 # }}}
 # Document - HTML, Edit, XML, [SXW] {{{
@@ -78,11 +81,12 @@ ok( !$obj->PartObj->Att('shape')->Applicable, 'It is not applicable to P');
 # Graph {{{
 
 foreach my $shape ($obj->PartObj->Att('shape')->Values) {
-    my $graph = $obj->NewGraph(
+    my $graph = $obj->GraphObj(
 	shape  => $shape,
 	width  => 100,
 	height => 100,
     );
+    warn $@ if $@;
     my $png = $graph->Plot(
 	labels	=> [ 'a' .. 'c' ],
 	data	=> [[ 1 .. 3 ]],
@@ -128,6 +132,7 @@ is($obj->SetName('Foo'), 'Foo', "Set ReportName");
 is($obj->Var('ReportName'), 'Foo', "Variable 'ReportName' changed value");
 is($obj->VarObj('ReportName')->Var, 'report_name', "->Var is lcased");
 is($obj->VarObj('ReportName')->Name, 'ReportName', "->Name is ucased");
+is($obj->SetVarDescription(ReportName => 'Bar'), undef, "Can't set description for ReportName");
 
 is($obj->Var('Page'), 1, "Variable 'Page' has value");
 is($obj->Var('PageCount'), 1, "Variable 'PageCount' has value");
@@ -156,8 +161,11 @@ is($obj->Var('Date'), '19100', "Retrieve its value");
 isa_ok($obj->SetVar(Era => 'Discord'),
     'DBIx::ReportBuilder::Variable', "Add a variable");
 is($obj->Var('Era'), 'Discord', "Retrieve its value");
+isa_ok($obj->SetVarDescription(Era => 'Bar'),
+    'DBIx::ReportBuilder::Variable', "Set description for variable");
 ok($obj->Reload, 'Reload successful');
 is($obj->Var('Era'), undef, "Value should vanish after reload");
+is($obj->VarDescription('Era'), 'Bar', "Description should retain after reload");
 
 isa_ok($obj->SetVarDefault(Era => 'Discord'),
     'DBIx::ReportBuilder::Variable', "Add a variable with default value");
@@ -174,7 +182,7 @@ is_deeply(
 is($obj->VarInsert( 'Era' ), 3, 'Set vars in text');
 my ($var2) = $obj->PartObj->last_child('var');
 isa_ok($var2, 'XML::Twig::Elt', 'VAR from get_xpath');
-is($var2->att('name'), 'era');
+is($var2->att('name'), 'era', 'Attribute name is correct');
 
 my ($p_var2) = $obj->RenderEditObj->root->get_xpath(
     '/div/table/tr[3]/td[2]/table/tr/td/p'
@@ -315,7 +323,7 @@ ok($table->first_child('tbody')->children <= 3,
     'Edit should only preserve 2 rows, plus ...');
 is($obj->ClauseObj(1)->text, 20, 'Text of limit is still 20');
 is($table->last_child('tbody')->text,
-    "FIELD => 'id', OPERATOR => '<', VALUE = '20'",
+    "Table => '', Field => 'id', Operator => '<', Text => '20'",
     'Correctly renders second tbody');
 
 # }}}
@@ -377,6 +385,8 @@ my ($graph) = $obj->RenderEditObj->root->get_xpath(
     '/div/table/tr[3]/td[2]/table/tr[2]/td/table'
 );
 isa_ok($graph, 'XML::Twig::Elt', 'Graph from get_xpath');
+like($graph->sprint,
+    qr(ClauseId=9&amp;PartId=Part4), 'ClauseId trigger agrees with PartId');
 
 # }}}
 }
