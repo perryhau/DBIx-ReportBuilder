@@ -1,8 +1,8 @@
 # $File: //member/autrijus/DBIx-ReportBuilder/lib/DBIx/ReportBuilder.pm $ $Author: autrijus $
-# $Revision: #40 $ $Change: 8715 $ $DateTime: 2003/11/06 15:50:39 $
+# $Revision: #41 $ $Change: 8831 $ $DateTime: 2003/11/13 14:50:19 $
 
 package DBIx::ReportBuilder;
-$DBIx::ReportBuilder::VERSION = '0.00_13';
+$DBIx::ReportBuilder::VERSION = '0.00_14';
 
 use strict;
 no warnings 'redefine';
@@ -16,8 +16,8 @@ DBIx::ReportBuilder - Interactive SQL report generator
 
 =head1 VERSION
 
-This document describes version 0.00_13 of DBIx::ReportBuilder, released
-November 6, 2003.
+This document describes version 0.00_14 of DBIx::ReportBuilder, released
+November 13, 2003.
 
 =head1 SYNOPSIS
 

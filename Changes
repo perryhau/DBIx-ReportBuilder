@@ -1,4 +1,36 @@
 ____________________________________________________________________________
+[  8831] By: autrijus                              on 2003/11/13  14:50:19
+        Log: * This be 0.00_14.
+	   ! lib/DBIx/ReportBuilder.pm
+____________________________________________________________________________
+[  8828] By: autrijus                              on 2003/11/13  14:15:32
+        Log: * add more room when there is a legend.
+             * each rotated row will probably just need 20px.
+	   ! lib/DBIx/ReportBuilder/Graph/GD.pm
+____________________________________________________________________________
+[  8826] By: autrijus                              on 2003/11/13  14:09:31
+        Log: * prettify graphs in edge cases.
+	   ! lib/DBIx/ReportBuilder/Attribute.pm
+	   ! lib/DBIx/ReportBuilder/Graph/GD.pm
+____________________________________________________________________________
+[  8825] By: autrijus                              on 2003/11/13  13:43:32
+        Log: * give sensible attribute defaults whenever possible.
+	   ! lib/DBIx/ReportBuilder/Attribute.pm
+____________________________________________________________________________
+[  8824] By: autrijus                              on 2003/11/13  13:41:59
+        Log: * ensure minimal height = items * 30
+	   ! lib/DBIx/ReportBuilder/Graph/GD.pm
+____________________________________________________________________________
+[  8800] By: autrijus                              on 2003/11/12  10:09:45
+        Log: * make GD graphing work with legends and x_axis_field.
+	   ! lib/DBIx/ReportBuilder/Attribute.pm
+	   ! lib/DBIx/ReportBuilder/Graph/GD.pm
+	   ! t/0-signature.t
+____________________________________________________________________________
+[  8722] By: autrijus                              on 2003/11/06  16:07:05
+        Log: * fix manifest.
+	   ! MANIFEST
+____________________________________________________________________________
 [  8718] By: autrijus                              on 2003/11/06  15:58:58
         Log: * This be 0.00_13.
 	   ! Makefile.PL

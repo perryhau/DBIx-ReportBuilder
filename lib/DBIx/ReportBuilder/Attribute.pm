@@ -1,5 +1,5 @@
 # $File: //member/autrijus/DBIx-ReportBuilder/lib/DBIx/ReportBuilder/Attribute.pm $ $Author: autrijus $
-# $Revision: #36 $ $Change: 8713 $ $DateTime: 2003/11/06 15:12:20 $
+# $Revision: #39 $ $Change: 8826 $ $DateTime: 2003/11/13 14:09:31 $
 
 package DBIx::ReportBuilder::Attribute;
 use strict;
@@ -65,8 +65,9 @@ sub Tag2Attributes () { {
     img         => [ qw( width height src ) ],
     include     => [ qw( report ) ],
     table       => [ qw( table rows font size border caption ) ],
-    graph       => [ qw( table shape style legend threed threed_shading cumulate
-			 show_values values_vertical rotate_chart caption ) ],
+    graph       => [ qw( table shape style x_axis_field legend threed
+			 threed_shading cumulate show_values values_vertical
+			 rotate_chart caption ) ],
     join	=> [ qw( table field table2 field2 ) ], # type
     limit	=> [ qw( table field operator text ) ], # entryaggregator 
     orderby	=> [ qw( table field order ) ],
@@ -83,6 +84,7 @@ sub Data () { {
     border		=> {
 	type		=> 'select',
 	values		=> [ 0 .. 4 ],
+	default		=> 0,
     },
     caption		=> {
 	type		=> 'text',
@@ -103,6 +105,7 @@ sub Data () { {
     font		=> {
 	type		=> 'select',
 	values		=> \&_fonts,
+	default		=> 'serif',
     },
     formula		=> {
 	type		=> 'text',
@@ -224,6 +227,7 @@ sub Data () { {
     },
     show_values	=> {
 	type		=> 'boolean',
+	applicable	=> sub { !$_[0]->Object->att('cumulate') },
 	default		=> 0,
     },
     values_vertical	=> {
@@ -232,6 +236,10 @@ sub Data () { {
 	default		=> 0,
     },
     rotate_chart	=> {
+	type		=> 'boolean',
+	default		=> 0,
+    },
+    x_axis_field	=> {
 	type		=> 'boolean',
 	default		=> 0,
     },

@@ -1,5 +1,5 @@
 # $File: //member/autrijus/DBIx-ReportBuilder/lib/DBIx/ReportBuilder/Graph/GD.pm $ $Author: autrijus $
-# $Revision: #4 $ $Change: 8077 $ $DateTime: 2003/09/12 18:11:45 $
+# $Revision: #8 $ $Change: 8828 $ $DateTime: 2003/11/13 14:15:32 $
 
 package DBIx::ReportBuilder::Graph::GD;
 use base 'DBIx::ReportBuilder::Graph';
@@ -34,76 +34,118 @@ BEGIN {
 sub new {
     my ($class, %args) = @_;
 
+    delete $args{class};
+    return unless %args;
+
     # Normalize identifiers
     $args{'3d'}         = delete($args{threed});
     $args{'3d_shading'} = delete($args{threed_shading});
+    delete $args{show_values} if $args{cumulate};
 
-    my $graph = $class->make_gd(%args) or return;
+    return bless(\%args, $class);
+}
 
-    $graph->set(%args, title => $class->escape($args{text}));
-    $graph->set(map { ("${_}clr" => 'black') } $class->Widgets);
+sub Plot {
+    my $self	= shift;
+    my %args	= (%$self, @_);
+    my $data	= $args{data};
+    my $labels	= $args{labels};
+    my @legends;
 
-    foreach my $label ($class->Labels) {
-	my $font = ($args{"${label}_font"} || 'ming') or next;
+    if ($args{legend}) {
+	my @fields = (
+	    ($args{x_axis_field})
+		? @{$labels}[1 .. $#{$labels}]
+		: @{shift(@$data) || []}
+	);
+	shift @$labels unless $args{x_axis_field};
+	@legends = map $self->escape($_), @fields;
+    }
+
+    if ($args{x_axis_field}) {
+	$labels = shift(@$data) || [];
+    }
+    else {
+	# rotate by 90 degrees
+	$data = [
+	    map {
+		my $y = $_;
+		[ map { $data->[$_][$y] } (0 .. $#{$data}) ]
+	    } (0 .. $#{$data->[0]}) # y
+	];
+    }
+
+    # ensure minimal height when chart is rotated
+    my $min_height = @$data * 20;
+    $self->{height} = $min_height
+	if $self->{rotate_chart} and $self->{height} < $min_height;
+    $self->{height} += 50 if @legends;
+
+    my $graph = $self->make_graph or return;
+    $graph->set_legend(@legends) if @legends;
+
+    if ($graph->isa('GD::Graph::axestype')) {
+	require Chart::Math::Axis;
+	my $axis = Chart::Math::Axis->new;
+
+	if ($self->{cumulate}) {
+	    require List::Util;
+
+	    $axis->add_data( map {
+		my $y = $_;
+		List::Util::sum(
+		    map { $data->[$_][$y] } (0 .. $#{$data})
+		);
+	    } (0 .. $#{$data->[0]}));
+	}
+	else {
+	    $axis->add_data(map { @$_ } @$data);
+	}
+
+	$axis->add_data(int($axis->max * 1.1)) if $self->{show_values};
+	$axis->include_zero;
+	$axis->apply_to($graph);
+    }
+
+    return eval { $graph->plot([ $labels, @$data ])->png };
+}
+
+sub make_graph {
+    my $self = shift;
+    my $graph = $self->make_gd or return;
+
+    $graph->set(%$self, title => $self->escape($self->{text}));
+    $graph->set(map { ("${_}clr" => 'black') } $self->Widgets);
+
+    foreach my $label ($self->Labels) {
+	my $font = ($self->{"${label}_font"} || 'ming') or next;
 	$font = ($font eq 'ming') ? 'bsmi00lp.ttf' : 'bkai00mp.ttf';
 
 	my $method = "set_${label}_font";
 	next unless $graph->can($method);
 
 	$graph->$method(
-	    $class->ttf_file($font),
-	    ($args{ "${label}_fontsize" } || 10),
+	    $self->ttf_file($font),
+	    ($self->{ "${label}_fontsize" } || 10),
 	);
     }
 
-    return bless({ graph => $graph, args => \%args }, $class);
-}
-
-sub Plot {
-    my $self	= shift;
-    my $graph	= $self->{graph};
-    my %args	= (%{ $self->{args} }, @_);
-    my $data	= $args{data};
-    my $labels	= $args{labels};
-    my $legends	= $args{legends};
-
-    if ($args{legend}) {
-	my @fields = (
-	    ($graph =~ m/pie/)
-		? @{ $args{labels} }
-		: map { $args{descr}{$_} || $_ } @{$self->{legends}}
-	);
-	$graph->set_legend(map $self->escape($_), @fields);
-    }
-    else {
-	delete $graph->{legend};    # XXX: pollution prevention
-    }
-
-    if ($graph->isa('GD::Graph::axestype')) {
-	require Chart::Math::Axis;
-
-	my $axis = Chart::Math::Axis->new;
-	$axis->add_data(map { @$_ } @{$args{data}});
-	$axis->include_zero;
-	$axis->apply_to($graph);
-    }
-
-    return eval { $graph->plot([ $args{labels}, @{$args{data}} ])->png };
+    return $graph;
 }
 
 sub get_shape {
-    my ($class, %args) = @_;
-    my $shape = $args{shape} || '';
-    my $style = $args{style} || '';
+    my $self = shift;
+    my $shape = $self->{shape} or return;
+    my $style = $self->{style} || '';
 
     return 'pie3d' if $shape eq 'pie';
 
     if ($shape eq 'bars') {
-	$shape .= '3d' if $args{'3d'};
+	$shape .= '3d' if $self->{'3d'};
 	return 'cylinder' if $style eq 'cylinder';
     }
     elsif ($shape eq 'lines') {
-	$shape .= '3d'     if $args{'3d'};
+	$shape .= '3d'     if $self->{'3d'};
 	$shape .= 'points' if $style eq 'dots';
     }
     else {
@@ -114,22 +156,16 @@ sub get_shape {
 }
 
 sub make_gd {
-    my ($class, %args) = @_;
-    my $shape = $class->get_shape(%args);
+    my $self = shift;
+    my $shape = $self->get_shape or return;
+    my ($width, $height) = @{$self}{'width', 'height'};
 
     no strict 'refs';
     require "GD/Graph/$shape.pm";
-    return "GD::Graph::$shape"->new($args{width}, $args{height})
+    return "GD::Graph::$shape"->new($width, $height)
 	    || die "Cannot make $shape.pm";
     
 }
-
-#sub AUTOLOAD {
-#    my $self = shift;
-#    $AUTOLOAD =~ s/^.*:://;
-#    my $graph = $self->{graph} or return;
-#    $graph->$AUTOLOAD(@_) if $graph->can($AUTOLOAD);
-#}
 
 1;
 
