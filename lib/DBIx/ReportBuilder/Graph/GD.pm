@@ -1,5 +1,5 @@
 # $File: //member/autrijus/DBIx-ReportBuilder/lib/DBIx/ReportBuilder/Graph/GD.pm $ $Author: autrijus $
-# $Revision: #8 $ $Change: 8828 $ $DateTime: 2003/11/13 14:15:32 $
+# $Revision: #10 $ $Change: 8941 $ $DateTime: 2003/11/18 18:02:06 $
 
 package DBIx::ReportBuilder::Graph::GD;
 use base 'DBIx::ReportBuilder::Graph';
@@ -76,7 +76,7 @@ sub Plot {
     }
 
     # ensure minimal height when chart is rotated
-    my $min_height = @$data * 20;
+    my $min_height = @$labels * ($self->{cumulate} ? 1 : @$data) * 25;
     $self->{height} = $min_height
 	if $self->{rotate_chart} and $self->{height} < $min_height;
     $self->{height} += 50 if @legends;

@@ -1,5 +1,5 @@
 name: DBIx-ReportBuilder
-version: 0.00_14
+version: 0.00_15
 abstract: Interactive SQL report generator
 author: Autrijus Tang (autrijus@autrijus.org)
 license: perl

@@ -1,4 +1,21 @@
 ____________________________________________________________________________
+[  8942] By: autrijus                              on 2003/11/18  18:08:05
+        Log: * This be 0.00_15.
+	   ! lib/DBIx/ReportBuilder.pm
+____________________________________________________________________________
+[  8941] By: autrijus                              on 2003/11/18  18:02:06
+        Log: * calculate min_height correctly for x_axis_field and
+	       cumulate graphs.
+	   ! lib/DBIx/ReportBuilder/Graph/GD.pm
+____________________________________________________________________________
+[  8893] By: autrijus                              on 2003/11/16  00:07:29
+        Log: * default 0 should be ok.
+	   ! lib/DBIx/ReportBuilder/Attribute.pm
+____________________________________________________________________________
+[  8864] By: autrijus                              on 2003/11/14  14:35:20
+        Log: * scale better
+	   ! lib/DBIx/ReportBuilder/Graph/GD.pm
+____________________________________________________________________________
 [  8831] By: autrijus                              on 2003/11/13  14:50:19
         Log: * This be 0.00_14.
 	   ! lib/DBIx/ReportBuilder.pm

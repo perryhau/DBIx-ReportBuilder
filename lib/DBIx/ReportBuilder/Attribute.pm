@@ -1,5 +1,5 @@
 # $File: //member/autrijus/DBIx-ReportBuilder/lib/DBIx/ReportBuilder/Attribute.pm $ $Author: autrijus $
-# $Revision: #39 $ $Change: 8826 $ $DateTime: 2003/11/13 14:09:31 $
+# $Revision: #40 $ $Change: 8893 $ $DateTime: 2003/11/16 00:07:29 $
 
 package DBIx::ReportBuilder::Attribute;
 use strict;
@@ -49,7 +49,8 @@ sub Values {
 }
 
 sub Default {
-    my $rv = $_[0]->Data->{$_[0]->{Att}}->{default} or return;
+    my $rv = $_[0]->Data->{$_[0]->{Att}}->{default};
+    return unless defined($rv);
     return $rv->($_[0]) if UNIVERSAL::isa($rv => 'CODE');
     return wantarray ? @$rv : $rv;
 }
