@@ -1,14 +1,31 @@
 # $File: //member/autrijus/DBIx-ReportBuilder/lib/DBIx/ReportBuilder/Search.pm $ $Author: autrijus $
-# $Revision: #3 $ $Change: 8214 $ $DateTime: 2003/09/23 04:29:48 $
+# $Revision: #6 $ $Change: 8274 $ $DateTime: 2003/09/28 10:51:26 $
 
 package DBIx::ReportBuilder::Search;
 
 use strict;
 use base 'DBIx::SearchBuilder';
 
-my $stub;
-sub NewItem { bless(\$stub) }
-sub LoadFromHash { bless($_[0] = $_[1]) }
+if (!eval { require Encode; 1 }) {
+    *Encode::decode = sub { $_[0] };
+}
+
+
+sub NewItem {
+    my $encoding = eval { $_[0]->{DBIxHandle}->Encoding } || 'utf8';
+    bless \$encoding, ref($_[0]);
+}
+
+sub LoadFromHash {
+    my $encoding = ${$_[0]};
+    bless($_[0] = $_[1]);
+
+    foreach my $key (sort keys %{$_[0]}) {
+	$_[0]{$key} = Encode::decode($encoding, $_[0]{$key});
+	$_[0]{$key} =~ s/&#([1-9]\d\d+);/chr($1)/eg;  # anti-escapism
+    }
+    return $_[0];
+}
 sub Id { $_[0]->{id} }
 
 sub Cell {

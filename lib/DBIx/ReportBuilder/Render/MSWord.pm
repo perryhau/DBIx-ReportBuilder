@@ -1,7 +1,7 @@
-# $File: //member/autrijus/DBIx-ReportBuilder/lib/DBIx/ReportBuilder/Render/PDF.pm $ $Author: autrijus $
-# $Revision: #6 $ $Change: 8261 $ $DateTime: 2003/09/28 06:10:18 $
+# $File: //member/autrijus/DBIx-ReportBuilder/lib/DBIx/ReportBuilder/Render/MSWord.pm $ $Author: autrijus $
+# $Revision: #3 $ $Change: 8277 $ $DateTime: 2003/09/28 13:16:30 $
 
-package DBIx::ReportBuilder::Render::PDF;
+package DBIx::ReportBuilder::Render::MSWord;
 use base 'DBIx::ReportBuilder::Render';
 use strict;
 use NEXT;
@@ -70,7 +70,7 @@ sub Render {
     );
     open $fh, ">$convert" or die $!;
     binmode($fh);
-    my $macro = +PDFConverter();
+    my $macro = +MSWordConverter();
     $macro =~ s/\$PATH/$absdir/g;
     print $fh $macro;
     close $fh;
@@ -78,7 +78,7 @@ sub Render {
     if ($^O eq 'MSWin32') {
 	for (1..10) {
 	    sleep 1;
-	    last if -s "$tmpdir/out.pdf";
+	    last if -s "$tmpdir/out.doc";
 	}
     }
     else {
@@ -90,16 +90,18 @@ sub Render {
 	);
     }
     for (1..10) {
-	last if -s "$tmpdir/out.pdf";
+	last if -s "$tmpdir/out.doc";
 	sleep 1;
     }
 
-    open $fh, "$tmpdir/out.pdf" or die "$!: $? ($tmpdir)";
+    open $fh, "$tmpdir/out.doc" or die "$!: $? ($tmpdir)";
     binmode($fh);
     local $/;
     my $rv = <$fh>;
     close $fh;
-    unlink "$tmpdir/out.pdf";
+    warn $tmpdir;
+    unlink "$tmpdir/out.doc";
+    unlink "$tmpdir/out.sxw";
     unlink "$tmpdir/out.html";
     rmdir $tmpdir;
     return $rv;
@@ -139,24 +141,24 @@ sub head {
 
 1;
 
-use constant PDFConverter => q{
+use constant MSWordConverter => q{
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <HTML>
 <HEAD>
 <META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
-<TITLE>PDF Converter</TITLE>
+<TITLE>MSWord Converter</TITLE>
 <META HTTP-EQUIV="CONTENT-SCRIPT-TYPE" CONTENT="text/x-StarBasic">
 <SCRIPT LANGUAGE="StarBasic">
 <!--
 ' $LIBRARY: Standard
-' $MODULE: HTML2PDF
-Sub HTML2PDF
+' $MODULE: HTML2MSWord
+Sub HTML2MSWord
     Dim oDesktop As Object
     Dim sInDir As String
     Dim sOutDir As String
     Dim sFile As String
     Dim sURL As String
-    Dim sPDF As String
+    Dim sMSWord As String
     Dim oDocument As Object   
 
     On Error Resume Next
@@ -168,11 +170,9 @@ Sub HTML2PDF
     aLoad(0).Name  = "Hidden"
     aLoad(0).Value = True
 
-    Dim aStore(1) As New com.sun.star.beans.PropertyValue
+    Dim aStore(0) As New com.sun.star.beans.PropertyValue
     aStore(0).Name  = "FilterName"
-    aStore(0).Value = "writer_web_pdf_Export"
-    aStore(1).Name  = "CompressMode"
-    aStore(1).Value = 1 'Possible Values : 0 - 1 -2
+    aStore(0).Value = "writer_web_StarOffice_XML_Writer"
 
     oDesktop = createUnoService("com.sun.star.frame.Desktop")
     sFile = Dir(sInDir+"*.html")
@@ -180,9 +180,14 @@ Sub HTML2PDF
     While sFile <> ""
 	sURL = sInDir + sFile
 	oDocument=oDesktop.loadComponentFromURL(sURL, "_blank", 0, aLoad())
-	sPDF = sOutDir + Left(sFile, Len(sFile)-5) + ".pdf"
+	sSXW = sOutDir + Left(sFile, Len(sFile)-5) + ".sxw"
+	oDocument.storeToURL(sSXW,aStore())
+	oDocument.dispose()
 
-	oDocument.storeToURL(sPDF,aStore())
+	oDocument=oDesktop.loadComponentFromURL(sSXW, "_blank", 0, aLoad())
+	sMSWord = sOutDir + Left(sFile, Len(sFile)-5) + ".doc"
+	aStore(0).Value = "MS Word 97"
+	oDocument.storeToURL(sMSWord,aStore())
 	oDocument.dispose()
 
 	sFile = Dir
@@ -193,6 +198,6 @@ End Sub
 ' -->
 </SCRIPT>
 </HEAD>
-<BODY LANG="" DIR="LTR" SDONLOAD="Standard.HTML2PDF.HTML2PDF"></BODY>
+<BODY LANG="" DIR="LTR" SDONLOAD="Standard.HTML2MSWord.HTML2MSWord"></BODY>
 </HTML>
 };

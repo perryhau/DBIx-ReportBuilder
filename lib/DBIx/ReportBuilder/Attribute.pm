@@ -1,5 +1,5 @@
 # $File: //member/autrijus/DBIx-ReportBuilder/lib/DBIx/ReportBuilder/Attribute.pm $ $Author: autrijus $
-# $Revision: #23 $ $Change: 8208 $ $DateTime: 2003/09/22 14:07:31 $
+# $Revision: #27 $ $Change: 8267 $ $DateTime: 2003/09/28 09:13:40 $
 
 package DBIx::ReportBuilder::Attribute;
 use strict;
@@ -256,22 +256,11 @@ sub _fields {
     my $dbh = $self->ReportBuilderObj->Handle->dbh;
     my $driver = $dbh->{Driver}{Name};
 
-    if ($driver eq 'ODBC') {
-	return map {
-	    my ($type) = lc($_->{TYPE_NAME});
-	    $type =~ s/ .*//;
-	    lc($_->{COLUMN_NAME});
-	} values(
-	    %{$dbh->selectall_hashref( "SP_COLUMNS $table;", 'COLUMN_NAME' ) || {}}
-	);
-    }
-    else {
-	# only tested on mysql, but should work elsewhere too
-	return map {
-	    my ($type) = map lc, ($_->[1] =~ /^(\w+)/);
-	    lc($_->[0]);
-	} @{$dbh->selectall_arrayref("DESCRIBE $table;") || []};
-    }
+    return map lc($_->[0]), @{
+	eval { $dbh->column_info('', '', $table, '')->fetchall_arrayref([3]) }
+	|| $dbh->selectall_arrayref("DESCRIBE $table;")
+	|| []
+    };
 }
 sub _fields2 {
     my $self = shift;
@@ -281,7 +270,7 @@ sub _tables {
     my $self = shift;
     my $tag = $self->Object->tag;
     if ($self->Att eq 'table2' or $tag eq 'table' or $tag eq 'graph') {
-	return sort map { s/^\W+//; s/\W+$//; $_ }
+	return sort map { /(\w+)\W*$/ ? lc($1) : lc($_) }
 	    $self->ReportBuilderObj->Handle->dbh->tables;
     }
     else {
@@ -291,7 +280,7 @@ sub _tables {
 	foreach my $clause ($obj->first_child('joins')->children) {
 	    $tables{ $clause->att('table2') }++;
 	}
-	return sort grep defined, grep length, keys %tables;
+	return sort map lc, grep defined, grep length, keys %tables;
     }
 }
 sub _tables2 { goto &_tables }

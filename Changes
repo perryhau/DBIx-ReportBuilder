@@ -1,4 +1,52 @@
 ____________________________________________________________________________
+[  8279] By: autrijus                              on 2003/09/28  13:46:01
+        Log: * This be 0.00_11.
+             * MSWord export support.
+             * added eg/rg2pdf.bat for win32 users.
+	  +> eg/rg2pdf.bat
+	   ! MANIFEST lib/DBIx/ReportBuilder.pm
+____________________________________________________________________________
+[  8274] By: autrijus                              on 2003/09/28  10:51:26
+        Log: * properly escape outside-big5 chars
+	   ! lib/DBIx/ReportBuilder/Search.pm
+____________________________________________________________________________
+[  8268] By: autrijus                              on 2003/09/28  09:36:25
+        Log: * so, odbc works.
+	   ! lib/DBIx/ReportBuilder/Search.pm
+____________________________________________________________________________
+[  8267] By: autrijus                              on 2003/09/28  09:13:40
+        Log: * try again
+	   ! lib/DBIx/ReportBuilder/Attribute.pm
+____________________________________________________________________________
+[  8266] By: autrijus                              on 2003/09/28  09:11:12
+        Log: * try again?
+	   ! lib/DBIx/ReportBuilder/Attribute.pm
+____________________________________________________________________________
+[  8265] By: autrijus                              on 2003/09/28  09:07:12
+        Log: * odbc fields works!
+	   ! lib/DBIx/ReportBuilder/Attribute.pm
+____________________________________________________________________________
+[  8261] By: autrijus                              on 2003/09/28  06:10:18
+        Log: * allow webserver account to write in /tmp/RG too.
+	   ! lib/DBIx/ReportBuilder/Render/MSWord.pm
+	   ! lib/DBIx/ReportBuilder/Render/PDF.pm
+____________________________________________________________________________
+[  8252] By: autrijus                              on 2003/09/26  11:35:05
+        Log: * msword converter.
+	   + lib/DBIx/ReportBuilder/Render/MSWord.pm
+____________________________________________________________________________
+[  8250] By: autrijus                              on 2003/09/26  11:20:01
+        Log: * DisconnectHandleOnDestroy.
+	   ! lib/DBIx/ReportBuilder.pm
+____________________________________________________________________________
+[  8247] By: autrijus                              on 2003/09/26  11:09:19
+        Log: * try harder at matching an useful table name.
+	   ! lib/DBIx/ReportBuilder/Attribute.pm
+____________________________________________________________________________
+[  8243] By: autrijus                              on 2003/09/26  10:36:09
+        Log: * decode things.
+	   ! lib/DBIx/ReportBuilder/Search.pm
+____________________________________________________________________________
 [  8216] By: autrijus                              on 2003/09/23  04:31:26
         Log: * This be 0.00_10.
 	   ! lib/DBIx/ReportBuilder.pm

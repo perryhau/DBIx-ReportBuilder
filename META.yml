@@ -1,6 +1,6 @@
 name: DBIx-ReportBuilder
 module_name: DBIx::ReportBuilder
-version: 0.00_10
+version: 0.00_11
 abstract: Interactive SQL report generator
 author: Autrijus Tang (autrijus@autrijus.org)
 distribution_type: module

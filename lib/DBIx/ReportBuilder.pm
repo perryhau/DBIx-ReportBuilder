@@ -1,8 +1,8 @@
 # $File: //member/autrijus/DBIx-ReportBuilder/lib/DBIx/ReportBuilder.pm $ $Author: autrijus $
-# $Revision: #32 $ $Change: 8216 $ $DateTime: 2003/09/23 04:31:26 $
+# $Revision: #34 $ $Change: 8279 $ $DateTime: 2003/09/28 13:46:01 $
 
 package DBIx::ReportBuilder;
-$DBIx::ReportBuilder::VERSION = '0.00_10';
+$DBIx::ReportBuilder::VERSION = '0.00_11';
 
 use strict;
 no warnings 'redefine';
@@ -16,8 +16,8 @@ DBIx::ReportBuilder - Interactive SQL report generator
 
 =head1 VERSION
 
-This document describes version 0.00_10 of DBIx::ReportBuilder, released
-September 23, 2003.
+This document describes version 0.00_11 of DBIx::ReportBuilder, released
+September 28, 2003.
 
 =head1 SYNOPSIS
 
@@ -172,7 +172,7 @@ sub NewHandle {
 
     require DBIx::SearchBuilder::Handle;
     my $obj = DBIx::SearchBuilder::Handle->new;
-    $obj->Connect( @_ ) or die $! if @_;
+    $obj->Connect( DisconnectHandleOnDestroy => 1,  @_ ) or die $! if @_;
 
     return $obj;
 }

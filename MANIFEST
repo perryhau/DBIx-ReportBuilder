@@ -4,6 +4,7 @@ META.yml
 Makefile.PL
 README
 SIGNATURE
+eg/rg2pdf.bat
 inc/Module/Install.pm
 inc/Module/Install/Base.pm
 inc/Module/Install/Include.pm
@@ -30,6 +31,7 @@ lib/DBIx/ReportBuilder/Part/Table.pm
 lib/DBIx/ReportBuilder/Render.pm
 lib/DBIx/ReportBuilder/Render/Edit.pm
 lib/DBIx/ReportBuilder/Render/HTML.pm
+lib/DBIx/ReportBuilder/Render/MSWord.pm
 lib/DBIx/ReportBuilder/Render/PDF.pm
 lib/DBIx/ReportBuilder/Render/SXW.pm
 lib/DBIx/ReportBuilder/Render/XML.pm
