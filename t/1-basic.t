@@ -1,8 +1,7 @@
 # $File: //member/autrijus/DBIx-ReportBuilder/t/1-basic.t $ $Author: autrijus $
-# $Revision: #2 $ $Change: 7953 $ $DateTime: 2003/09/07 22:05:43 $
+# $Revision: #5 $ $Change: 7966 $ $DateTime: 2003/09/08 00:13:35 $
 
-use FindBin;
-use Test::More tests => 69;
+use Test::More tests => 71;
 
 use_ok('DBIx::ReportBuilder');
 
@@ -24,20 +23,27 @@ is($obj->ClauseObj, undef, 'ClauseObj is undefined');
 
 is($obj->PartId, 3, 'PartId autoposition');
 is($obj->ClauseId, 0, 'ClauseId does not have autoposition');
-is(my $render = $obj->Render, $obj->Render, 'Render consistency');
-is($obj->Render('HTML'), $obj->Render('HTML'), 'Render HTML consistency');
+is($obj->RenderHTML, $obj->RenderHTML, 'RenderHTML consistency');
+is(my $render = $obj->RenderEdit,
+    $obj->RenderEdit, 'RenderEdit consistency');
+is($obj->RenderXML,
+    '<?xml version="1.0" encoding="UTF-8"?>' . "\n" . $obj->root->sprint,
+    'RenderXML consistency');
+is($obj->Render, $obj->RenderHTML, 'Render means RenderHTML');
 
 ok($obj->Reload, 'Reload successful');
 is($obj->PartId, 3, 'Reload does not move PartId');
-is($obj->Render, $render, 'Render consistency across reload');
+is($obj->RenderEdit,
+    $render, 'Render consistency across reload');
 
 is($obj->Recount, 3, 'Recount returns PartId under scalar context');
-is($obj->Render, $render, 'Render consistency across reload');
+is($obj->RenderEdit,
+    $render, 'Render consistency across reload');
 
-is($obj->Part(Change => ( text => 100 )), 3, 'Change does not move PartId');
+is($obj->PartChange( text => 100 ), 3, 'Change does not move PartId');
 is($obj->PartObj->text, 100, 'Text changed');
 
-is($obj->Part(Change => ( font => 12, align => 'left' )), 3, 'attr change');
+is($obj->PartChange( font => 12, align => 'left' ), 3, 'attr change');
 is($obj->PartObj->text, 100, 'Text remains unchanged');
 is_deeply(
     $obj->PartObj->atts,
@@ -45,38 +51,39 @@ is_deeply(
     'Attr changed'
 );
 
-my ($p) = $obj->RenderObj->root->get_xpath(
+my ($p) = $obj->RenderEditObj->root->get_xpath(
     '/div/table/tr[3]/td[2]/table/tr/td/p'
 );
 isa_ok($p, 'XML::Twig::Elt');
 like($p->first_child('font')->sprint,
     qr{^\s*<font face="12">100</font>\s*$}, 'Correctly renders font');
 
-is($obj->Part(FooBar => ( tag => 'p' )), undef, 'Illegal op is noop');
-is($obj->Clause(FooBar => ( tag => 'p' )), undef, 'Illegal op is noop');
+is($obj->PartFooBar( tag => 'p' ), undef, 'Illegal op is noop');
+is($obj->ClauseFooBar( tag => 'p' ), undef, 'Illegal op is noop');
 
-is($obj->Part(Insert => ( tag => 'p' )), 4, 'Insert p moves PartId');
+is($obj->PartInsert( tag => 'p' ), 4, 'Insert p moves PartId');
 is_deeply($obj->PartObj->atts, { id => 'Part4' }, 'New part has id after reload');
-is($obj->Part(Insert => ( tag => 'img' )), 4, 'Insert img to empty p = replace');
+is($obj->PartInsert( tag => 'img' ), 4, 'Insert img to empty p = replace');
 
 isa_ok($obj->PartObj, 'DBIx::ReportBuilder::Part::Img');
 is($obj->PartObj->tag, 'img', 'Really replaced');
 is($obj->PartObj->id, 'Part4', 'ID is correct');
 
-is($obj->Part('Up'), 3, 'Move up img');
-is($obj->Part('Up'), 3, 'Move up again has no effect');
-is($obj->Part('Down'), 4, 'Move down img');
-is($obj->Part('Down'), 4, 'Move down again has no effect');
+is($obj->PartUp, 3, 'Move up img');
+is($obj->PartUp, 3, 'Move up again has no effect');
+is($obj->PartDown, 4, 'Move down img');
+is($obj->PartDown, 4, 'Move down again has no effect');
 isa_ok($obj->PartObj, 'DBIx::ReportBuilder::Part::Img');
 
-is($obj->Part('Remove'), 3, 'Remove img returns PartId to 3');
-is($obj->Part('Remove'), 3, 'Remove p retains PartId in 3');
+is($obj->PartRemove, 3, 'Remove img returns PartId to 3');
+is($obj->PartRemove, 3, 'Remove p retains PartId in 3');
 
 isa_ok($obj->PartObj, 'DBIx::ReportBuilder::Part::P');
 is($obj->PartObj->parent->tag, 'content', 'Still in content after removal');
-is_deeply($obj->PartObj->atts, { id => 'Part3' }, 'But has all attributes cleared');
+is_deeply($obj->PartObj->atts,
+    { id => 'Part3' }, 'But has all attributes cleared');
 
-is($obj->Part(Insert => ( tag => 'table' )), 3, 'Insert table replaces p');
+is($obj->PartInsert( tag => 'table' ), 3, 'Insert table replaces p');
 is($obj->PartObj->tag, 'table', 'Really inserted');
 isa_ok($obj->PartObj, 'DBIx::ReportBuilder::Part::Table');
 is_deeply(
@@ -85,39 +92,40 @@ is_deeply(
     'New table has subelements'
 );
 
-is($obj->Part( Change => ( table => 'users', rows => 10, text => 'User List' )),
+is($obj->PartChange( table => 'users', rows => 10, text => 'User List' ),
     3, 'Change does not move PartId');
-is($obj->Clause( Insert => ( tag => 'limit' ) ),
+is($obj->ClauseInsert( tag => 'limit' ),
     1, 'Insert clause increments ClauseId');
 is($obj->ClauseId, 1, 'ClauseId increments to 1');
 is_deeply([$obj->Recount], [3, 1], 'Recount in list context returns both IDs');
-is($obj->Clause('Remove'), 0, 'Remove limit returns ClauseId to 0');
+is($obj->ClauseRemove, 0, 'Remove limit returns ClauseId to 0');
 is($obj->ClauseId, 0, 'ClauseId decrements to 0');
-is($obj->Clause( Insert => ( tag => 'limit' ) ),
+is($obj->ClauseInsert( tag => 'limit' ),
     1, 'Insert limit increments ClauseId');
-is($obj->Clause( Insert => ( tag => 'limit' ) ),
+is($obj->ClauseInsert( tag => 'limit' ),
     2, 'Insert limit increments ClauseId');
 
-is($obj->Clause('Up'), 1, 'Move up limit');
-is($obj->Clause('Up'), 1, 'Move up again has no effect');
-is($obj->Clause('Down'), 2, 'Move down limit');
-is($obj->Clause('Down'), 2, 'Move down again has no effect');
-is($obj->Clause('Remove'), 1, 'Remove limit returns ClauseId to 1');
-is($obj->Clause('Remove'), 0, 'Remove limit returns ClauseId to 0');
+is($obj->ClauseUp, 1, 'Move up limit');
+is($obj->ClauseUp, 1, 'Move up again has no effect');
+is($obj->ClauseDown, 2, 'Move down limit');
+is($obj->ClauseDown, 2, 'Move down again has no effect');
+is($obj->ClauseRemove, 1, 'Remove limit returns ClauseId to 1');
+is($obj->ClauseRemove, 0, 'Remove limit returns ClauseId to 0');
 
-is($obj->Clause( Insert => ( tag => 'limit', field => 'id', operator => '<', value => 2000 ) ),
-    1, 'Insert limit increments ClauseId');
+is($obj->ClauseInsert(
+    tag => 'limit', field => 'id', operator => '<', value => 20
+), 1, 'Insert limit increments ClauseId');
 is_deeply(
     $obj->ClauseObj->atts,
-    { id => 'Clause1', field => 'id', operator => '<', value => 2000 },
+    { id => 'Clause1', field => 'id', operator => '<', value => 20 },
     'Attr changed as part of Insert'
 );
 
 SKIP: { skip("Can't connect to RT3 database", 9) unless $obj->Handle->dbh;
 
-is($obj->Clause( Insert => ( tag => 'cell', field => 'id', text => 'Id' ) ),
+is($obj->ClauseInsert( tag => 'cell', field => 'id', text => 'Id' ),
     2, 'Insert cell increments ClauseId');
-is($obj->Clause( Insert => ( tag => 'cell', field => 'name', text => 'Name' ) ),
+is($obj->ClauseInsert( tag => 'cell', field => 'name', text => 'Name' ),
     3, 'Insert cell increments ClauseId');
 is($obj->ClauseObj->text, 'Name', 'Text changed as part of Insert');
 is_deeply(
@@ -126,8 +134,8 @@ is_deeply(
     'Attr changed as part of Insert'
 );
 
-is($obj->Render, $obj->Render, 'Render consistency');
-my ($table) = $obj->RenderObj->root->get_xpath(
+is($obj->RenderEdit, $obj->RenderEdit, 'RenderEdit consistency');
+my ($table) = $obj->RenderEditObj->root->get_xpath(
     '/div/table/tr[3]/td[2]/table/tr/td/table'
 );
 isa_ok($table, 'XML::Twig::Elt');

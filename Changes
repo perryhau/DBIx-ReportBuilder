@@ -1,4 +1,47 @@
 ____________________________________________________________________________
+[  7967] By: autrijus                              on 2003/09/08  00:15:34
+        Log: * This be 0.00_02.
+             * mention RTx::Report.
+	   ! Makefile.PL lib/DBIx/ReportBuilder.pm
+____________________________________________________________________________
+[  7966] By: autrijus                              on 2003/09/08  00:13:35
+        Log: * no need for findbin.
+	   ! t/1-basic.t
+____________________________________________________________________________
+[  7958] By: autrijus                              on 2003/09/07  23:15:33
+        Log: * bump version.
+             * add stub SXW (OpenOffice Write) renderer.
+	   + lib/DBIx/ReportBuilder/Render/SXW.pm
+	   ! MANIFEST lib/DBIx/ReportBuilder.pm
+____________________________________________________________________________
+[  7957] By: autrijus                              on 2003/09/07  23:11:33
+        Log: * much better API by allowing ->Part('Insert', ...) be
+             written as ->PartInsert(...).  Ditto for Clause and Render.
+	   ! lib/DBIx/ReportBuilder.pm t/1-basic.t
+____________________________________________________________________________
+[  7956] By: autrijus                              on 2003/09/07  23:01:03
+        Log: * add Render::XML.
+             * Render now defaults to HTML unless explicitly asked.
+	   + lib/DBIx/ReportBuilder/Render/XML.pm
+	   ! lib/DBIx/ReportBuilder.pm lib/DBIx/ReportBuilder/Render.pm
+	   ! t/1-basic.t
+____________________________________________________________________________
+[  7955] By: autrijus                              on 2003/09/07  22:39:24
+        Log: * complete clause/part/renders set.
+	   + lib/DBIx/ReportBuilder/Clause/Join.pm
+	   + lib/DBIx/ReportBuilder/Clause/Orderby.pm
+	   + lib/DBIx/ReportBuilder/Part/Graph.pm
+	   + lib/DBIx/ReportBuilder/Part/Include.pm
+	   + lib/DBIx/ReportBuilder/Render/HTML.pm
+____________________________________________________________________________
+[  7954] By: autrijus                              on 2003/09/07  22:38:40
+        Log: * clean up handle creation.
+	   ! MANIFEST Makefile.PL lib/DBIx/ReportBuilder.pm
+	   ! lib/DBIx/ReportBuilder/Clause.pm
+	   ! lib/DBIx/ReportBuilder/Part.pm
+	   ! lib/DBIx/ReportBuilder/Part/P.pm
+	   ! lib/DBIx/ReportBuilder/Render.pm
+____________________________________________________________________________
 [  7953] By: autrijus                              on 2003/09/07  22:05:43
         Log: * This be 0.00_01, first CPAN prerelease.
 	   + lib/DBIx/ReportBuilder/Clause/Cell.pm

@@ -1,5 +1,5 @@
 # $File: //member/autrijus/DBIx-ReportBuilder/lib/DBIx/ReportBuilder/Part.pm $ $Author: autrijus $
-# $Revision: #1 $ $Change: 7952 $ $DateTime: 2003/09/07 20:09:05 $
+# $Revision: #2 $ $Change: 7954 $ $DateTime: 2003/09/07 22:38:40 $
 
 package DBIx::ReportBuilder::Part;
 

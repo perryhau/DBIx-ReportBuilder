@@ -1,5 +1,5 @@
-# $File: //member/autrijus/DBIx-ReportBuilder/lib/DBIx/ReportBuilder/Part/P.pm $ $Author: autrijus $
-# $Revision: #1 $ $Change: 7952 $ $DateTime: 2003/09/07 20:09:05 $
+# $File: //member/autrijus/DBIx-ReportBuilder/lib/DBIx/ReportBuilder/Clause/Join.pm $ $Author: autrijus $
+# $Revision: #1 $ $Change: 7955 $ $DateTime: 2003/09/07 22:39:24 $
 
 package DBIx::ReportBuilder::Clause::Join;
 use base 'DBIx::ReportBuilder::Clause';

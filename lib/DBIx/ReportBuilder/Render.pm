@@ -1,5 +1,5 @@
 # $File: //member/autrijus/DBIx-ReportBuilder/lib/DBIx/ReportBuilder/Render.pm $ $Author: autrijus $
-# $Revision: #1 $ $Change: 7952 $ $DateTime: 2003/09/07 20:09:05 $
+# $Revision: #3 $ $Change: 7956 $ $DateTime: 2003/09/07 23:01:03 $
 
 package DBIx::ReportBuilder::Render;
 
@@ -42,6 +42,7 @@ sub new {
     return $self;
 }
 
+sub Render { $_[0]->root->sprint }
 sub Object { $_[0]->{object} }
 sub SetObject { $_[0]->{object} = $_[1] }
 
@@ -126,6 +127,7 @@ sub limit {
     my $item = $_;
     my $SB = $item->parent->parent->att('SearchBuilder');
     $SB->Limit(
+	CASESENSITIVE => 1,
 	(map { uc($_) => $item->att($_) } $item->att_names),
 	_alias($item),
     );

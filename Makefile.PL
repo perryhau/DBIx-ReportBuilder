@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 # $File: //member/autrijus/DBIx-ReportBuilder/Makefile.PL $ $Author: autrijus $
-# $Revision: #1 $ $Change: 7952 $ $DateTime: 2003/09/07 20:09:05 $
+# $Revision: #3 $ $Change: 7967 $ $DateTime: 2003/09/08 00:15:34 $
 
 use 5.006;
 use inc::Module::Install;
@@ -11,8 +11,8 @@ build_requires ('Test::More', 0);
 warn << '.';
 ### PLEASE NOTE ##############################################
 
-This is *PRE-ALPHA* code.  Until the eventual release of the
-"RT Report Extenison", using this module for anything (except
+This is *PRE-ALPHA* code.  Until the actual release of the
+RTx::Report extenison, using this module for anything (except
 for learning purporses) is strongly discouraged.
 
 ##############################################################

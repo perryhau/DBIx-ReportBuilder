@@ -1,8 +1,8 @@
 # $File: //member/autrijus/DBIx-ReportBuilder/lib/DBIx/ReportBuilder.pm $ $Author: autrijus $
-# $Revision: #1 $ $Change: 7952 $ $DateTime: 2003/09/07 20:09:05 $
+# $Revision: #6 $ $Change: 7967 $ $DateTime: 2003/09/08 00:15:34 $
 
 package DBIx::ReportBuilder;
-$DBIx::ReportBuilder::VERSION = '0.00_01';
+$DBIx::ReportBuilder::VERSION = '0.00_02';
 
 use strict;
 no warnings 'redefine';
@@ -16,8 +16,8 @@ DBIx::ReportBuilder - Interactive SQL report generator
 
 =head1 VERSION
 
-This document describes version 0.00_01 of DBIx::ReportBuilder, released
-September 8, 2003.
+This document describes version 0.00_02 of DBIx::ReportBuilder, released
+September 9, 2003.
 
 =head1 SYNOPSIS
 
@@ -29,38 +29,38 @@ September 8, 2003.
 	Password    => 'rt_pass',
 	Database    => 'rt3',
     );
-    $obj->Part('Insert',
+    $obj->PartInsert(
 	tag => 'table', table => 'users', rows => 10, text => 'User List'
     );
-    $obj->Clause('Insert',
+    $obj->ClauseInsert(
 	tag => 'limit', field => 'id', operator => '<', value => 2000
     );
-    $obj->Clause('Insert',
+    $obj->ClauseInsert(
 	tag => 'cell', field => 'id', text => 'Id'
     );
-    $obj->Clause('Insert',
+    $obj->ClauseInsert(
 	tag => 'cell', field => 'name', text => 'Name'
     );
-    $obj->ClauseObj->Up;	# move up; switch Name and Id
-    $obj->ClauseObj->Down;	# move down; switch Name and Id back
-    $obj->ClauseObj->Remove;	# delete the current clause
-    print $obj->Render('HTML');	# prints a HTML rendered document
-    print $obj->Render('Edit');	# prints an interactive Web UI
-    print $obj->Render('PDF');	# prints PDF (not yet)
+    $obj->ClauseUp;	# move up; switch Name and Id
+    $obj->ClauseDown;	# move down; switch Name and Id back
+    $obj->ClauseRemove;	# delete the current clause
+    print $obj->RenderHTML;	# prints a HTML rendered document
+    print $obj->RenderEdit;	# prints an interactive Web UI
+    print $obj->RenderPDF;	# prints PDF (not yet)
 
 =head1 DESCRIPTION
 
 This module is a subclass of B<XML::Twig>, specially tailored to render
 SQL reports in various formats, based on B<DBIx::SearchBuilder>.
 
-Its API is designed to interact with users via the I<RT Report Extension>'s
+Its API is designed to interact with users via B<RTx::Report>'s
 Web UI, which can incrementally construct complex reports.
 
 =head1 NOTES
 
-This is B<PRE-ALPHA> code.  Until the eventual release of the I<RT Report
-Extenison>, using this module for anything (except for learning purporses)
-is strongly discouraged.
+This is B<PRE-ALPHA> code.  Until the actual release of the B<RTx::Report>,
+using this module for anything (except for learning purporses) is strongly
+discouraged.
 
 =head1 METHODS
 
@@ -85,6 +85,7 @@ use constant PartAttrs	=> {
     cell	=> [ qw( field align font size ) ],
 };
 
+our $AUTOLOAD;
 our @EXPORT_OK = qw( Sections Parts Clauses BaseClass Attrs );
 our %EXPORT_TAGS = ( all => \@EXPORT_OK );
 
@@ -163,13 +164,13 @@ sub NewHandle {
 
 sub RenderObj {
     my $self = shift;
-    my $type = shift || 'Edit';
+    my $type = shift || 'HTML';
     return $self->spawn("Render::$type" => ( Object => $self ) );
 }
 
 sub Render {
     my $self = shift;
-    return $self->RenderObj(@_)->root->sprint;
+    return $self->RenderObj(@_)->Render;
 }
 
 sub Reload {
@@ -256,11 +257,24 @@ sub loc {
     return $_[0];
 }
 
+sub DESTROY {}
+
+sub AUTOLOAD {
+    no warnings 'uninitialized';
+
+    my $self = shift;
+    $AUTOLOAD =~ /\b(Part|Clause|Render)(\w+?)(Obj)?$/
+	or die "Undefined subroutine $AUTOLOAD";
+
+    my $method = "$1$3";
+    $self->$method($2, @_);
+}
+
 1;
 
 =head1 SEE ALSO
 
-L<XML::Twig>, L<DBIx::SearchBuilder>
+L<RTx::Report>, L<XML::Twig>, L<DBIx::SearchBuilder>
 
 =head1 AUTHORS
 
