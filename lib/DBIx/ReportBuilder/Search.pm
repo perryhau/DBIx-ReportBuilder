@@ -1,5 +1,5 @@
 # $File: //member/autrijus/DBIx-ReportBuilder/lib/DBIx/ReportBuilder/Search.pm $ $Author: autrijus $
-# $Revision: #6 $ $Change: 8274 $ $DateTime: 2003/09/28 10:51:26 $
+# $Revision: #8 $ $Change: 8439 $ $DateTime: 2003/10/17 00:25:51 $
 
 package DBIx::ReportBuilder::Search;
 
@@ -12,7 +12,10 @@ if (!eval { require Encode; 1 }) {
 
 
 sub NewItem {
-    my $encoding = eval { $_[0]->{DBIxHandle}->Encoding } || 'utf8';
+    my $encoding = eval { $_[0]->_Handle->Encoding };
+    $encoding ||= 'big5'
+	if eval { $_[0]->_Handle->dbh->{Driver}{Name} } eq 'ODBC';
+    $encoding ||= 'utf8';
     bless \$encoding, ref($_[0]);
 }
 
@@ -43,6 +46,24 @@ sub Cell {
     push @{$self->{cells}},
 	($args{ALIAS} || 'main') . '.' . $args{FIELD} .
 	" AS ${table}_$args{FIELD}";
+}
+
+sub Fields {
+    my ($self, $table) = @_;
+    my $dbh = $self->_Handle->dbh;
+
+    return map lc($_->[0]), @{
+	eval { $dbh->column_info('', '', $table, '')->fetchall_arrayref([3]) }
+	|| $dbh->selectall_arrayref("DESCRIBE $table;")
+	|| []
+    };
+}
+
+sub HasField {
+    my ($self, %args) = @_;
+    my $table = $args{TABLE} or die;
+    my $field = $args{FIELD} or die;
+    return grep { $_ eq $field } $self->Fields($table);
 }
 
 sub _ApplyLimits {

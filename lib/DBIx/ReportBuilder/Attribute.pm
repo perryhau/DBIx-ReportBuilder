@@ -1,5 +1,5 @@
 # $File: //member/autrijus/DBIx-ReportBuilder/lib/DBIx/ReportBuilder/Attribute.pm $ $Author: autrijus $
-# $Revision: #27 $ $Change: 8267 $ $DateTime: 2003/09/28 09:13:40 $
+# $Revision: #30 $ $Change: 8385 $ $DateTime: 2003/10/12 16:24:57 $
 
 package DBIx::ReportBuilder::Attribute;
 use strict;
@@ -85,7 +85,7 @@ use constant Data => {
 	type		=> 'text',
     },
     field		=> {
-	type		=> 'select',
+	type		=> 'data_source',
 	values		=> \&_fields,
 	applicable	=> sub {
 	    $_[0]->Object->att('table') or
@@ -93,7 +93,7 @@ use constant Data => {
 	},
     },
     field2		=> {
-	type		=> 'select',
+	type		=> 'data_source',
 	values		=> \&_fields2,
 	applicable	=> sub { $_[0]->Object->att('table2') },
     },
@@ -132,12 +132,12 @@ use constant Data => {
 	type		=> 'image',
     },
     table		=> {
-	type		=> 'select',
+	type		=> 'data_source',
 	values		=> \&_tables,
 	default		=> sub { $_[0]->Object->parent->parent->att('table') },
     },
     table2		=> {
-	type		=> 'select',
+	type		=> 'data_source',
 	values		=> \&_tables2,
     },
     text		=> {
@@ -248,24 +248,20 @@ use constant Attribute2Tags => do {
 };
 
 sub _fonts { 'serif', 'sans serif', 'monotype' }
+
 sub _fields {
     my $self = shift;
     my $att  = shift || 'table';
     my $obj  = $self->Object;
     my $table = $obj->att($att) || $obj->parent->parent->att($att) or return;
-    my $dbh = $self->ReportBuilderObj->Handle->dbh;
-    my $driver = $dbh->{Driver}{Name};
-
-    return map lc($_->[0]), @{
-	eval { $dbh->column_info('', '', $table, '')->fetchall_arrayref([3]) }
-	|| $dbh->selectall_arrayref("DESCRIBE $table;")
-	|| []
-    };
+    return $obj->twig->SearchObj->Fields($table);
 }
+
 sub _fields2 {
     my $self = shift;
     return $self->_fields( 'table2' );
 }
+
 sub _tables {
     my $self = shift;
     my $tag = $self->Object->tag;
@@ -274,6 +270,7 @@ sub _tables {
 	    $self->ReportBuilderObj->Handle->dbh->tables;
     }
     else {
+	# limit only to those accessible by us
 	my %tables;
 	my $obj = $self->Object->parent->parent or return;
 	$tables{ $obj->att('table') }++;

@@ -1,8 +1,8 @@
 # $File: //member/autrijus/DBIx-ReportBuilder/lib/DBIx/ReportBuilder.pm $ $Author: autrijus $
-# $Revision: #34 $ $Change: 8279 $ $DateTime: 2003/09/28 13:46:01 $
+# $Revision: #37 $ $Change: 8476 $ $DateTime: 2003/10/19 01:32:30 $
 
 package DBIx::ReportBuilder;
-$DBIx::ReportBuilder::VERSION = '0.00_11';
+$DBIx::ReportBuilder::VERSION = '0.00_12';
 
 use strict;
 no warnings 'redefine';
@@ -16,8 +16,8 @@ DBIx::ReportBuilder - Interactive SQL report generator
 
 =head1 VERSION
 
-This document describes version 0.00_11 of DBIx::ReportBuilder, released
-September 28, 2003.
+This document describes version 0.00_12 of DBIx::ReportBuilder, released
+October 19, 2003.
 
 =head1 SYNOPSIS
 
@@ -55,7 +55,7 @@ Web UI, which can incrementally construct complex reports.
 
 =head1 NOTES
 
-This is B<PRE-ALPHA> code.  Until the actual release of the B<RTx::Report>,
+This is B<PRE-ALPHA> code.  Until the official release of B<RTx::Report>,
 using this module for anything (except for learning purporses) is strongly
 discouraged.
 
@@ -70,7 +70,7 @@ use constant Sections	=> qw( preamble header content footer postamble );
 use constant Parts	=> qw( p img table graph include );
 use constant Clauses	=> qw( join limit orderby cell );
 use constant Parameters	=> qw( name handle trigger clause_id part_id );
-use constant Callbacks	=> qw( loc describe_report render_report );
+use constant Callbacks	=> qw( loc search_hook describe_report render_report );
 use constant BaseClass	=> __PACKAGE__;
 
 our $AUTOLOAD;
@@ -95,6 +95,9 @@ BEGIN {
 	my $accessor = BaseClass->ucase($item);
 	*{"$accessor"} = sub { $_[0]->{$item} };
 	*{"Set$accessor"} = sub { $_[0]->{$item} = $_[1] };
+	# alias for "HandleObj", etc
+	*{"${accessor}Obj"} = sub { $_[0]->{$item} };
+	*{"Set${accessor}Obj"} = sub { $_[0]->{$item} = $_[1] };
     }
     foreach my $item (Callbacks) {
 	*{"$item"} = sub {
@@ -162,7 +165,10 @@ sub NewContent {
 	foreach $self->Sections;
 
     $head->set_att(orientation => 'portrait');
-    $head->set_att(paper => 'a4paper');
+    $head->set_att(paper => 'A4');
+    foreach my $key (map "margin_$_", qw/top bottom left right/) {
+	$head->set_att($key => '200');
+    }
 
     return $obj->sprint;
 }

@@ -1,20 +1,24 @@
 name: DBIx-ReportBuilder
 module_name: DBIx::ReportBuilder
-version: 0.00_11
+version: 0.00_12
 abstract: Interactive SQL report generator
 author: Autrijus Tang (autrijus@autrijus.org)
+license: unknown
 distribution_type: module
 build_requires:
   Test::More: 0
 requires:
-  GD::Graph: 0.01
-  MIME::Base64: 2.12
-  GD::Graph3d: 0.61
   XML::Twig: 3.00
   Chart::Math::Axis: 0.1
+  MIME::Base64: 2.12
   Image::Size: 0.01
+  GD::Graph3d: 0.61
+  GD::Graph: 0.01
   DBIx::SearchBuilder: 0.90
+no_index:
+  directory:
+    - inc
 private:
   directory:
     - inc
-generated_by: Module::Install version 0.24
+generated_by: Module::Install version 0.26

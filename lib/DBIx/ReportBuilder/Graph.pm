@@ -1,5 +1,5 @@
 # $File: //member/autrijus/DBIx-ReportBuilder/lib/DBIx/ReportBuilder/Graph.pm $ $Author: autrijus $
-# $Revision: #4 $ $Change: 8058 $ $DateTime: 2003/09/11 22:21:42 $
+# $Revision: #5 $ $Change: 8390 $ $DateTime: 2003/10/12 16:53:29 $
 
 package DBIx::ReportBuilder::Graph;
 
@@ -40,7 +40,7 @@ sub escape {
 
 sub ttf_path {
     return '/usr/local/share/fonts/TrueType' unless $^O eq 'MSWin32';
-    return '/Progra~1/OurInternet/Common/texmf/fonts/truetype/arphic';
+    return '/Progra~1/OurInternet/Common/fonts/truetype/arphic';
 }
 
 sub ttf_file {

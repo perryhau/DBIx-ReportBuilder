@@ -1,5 +1,5 @@
 # $File: //member/autrijus/DBIx-ReportBuilder/lib/DBIx/ReportBuilder/Render.pm $ $Author: autrijus $
-# $Revision: #19 $ $Change: 8214 $ $DateTime: 2003/09/23 04:29:48 $
+# $Revision: #24 $ $Change: 8383 $ $DateTime: 2003/10/12 15:28:02 $
 
 package DBIx::ReportBuilder::Render;
 
@@ -91,6 +91,7 @@ sub cells {
 
     $self->_do_search(
 	$item,
+	$item->parent->att('#Tables'),
 	$item->parent->att('#SearchBuilder'),
 	$item->parent->att('#Result'),
 	$item->last_child('tbody'),
@@ -101,9 +102,13 @@ sub cells {
 }
 
 sub _do_search {
-    my ($self, $item, $SB, $result, $tbody, $children) = @_;
+    my ($self, $item, $tables, $SB, $result, $tbody, $children) = @_;
 
-    return unless $SB and $SB->RedoSearch;
+    return unless $SB;
+    if (my $code = $self->Object->SearchHook) {
+	$code->($item, $tables, $SB);
+    }
+    $SB->RedoSearch;
 
     my @fields = map { $_->att('field') } @$children;
     my %vars = map {
@@ -183,7 +188,7 @@ sub search {
     }
 
     $_->set_att(
-	'#Tables'	    => {},	# key: table, val: alias
+	'#Tables'	    => { $SB->{table} => '' },	# key: table, val: alias
 	'#OrderBy'	    => [],	# passed to OrderByCols
 	'#SearchBuilder'    => $SB,	# SearchBuilder object
 	'#Result'	    => [],	# result set
@@ -283,5 +288,42 @@ sub plotGraph {
     $item->insert_new_elt(div => { align => 'center' })
 	 ->insert_new_elt(img => { src => $self->Object->encode_src($png) });
 }
+
+sub HeadDimensions {
+    my ($self, $item) = @_;
+    my $size = $self->PageToDimensions->{$item->att('paper')};
+    $size ||= $self->PageToDimensions->{'A4'};
+
+    my $margins;
+    foreach my $key (map "margin_$_", qw/top right bottom left/) {
+	my $margin = $item->att($key);
+	$margin = '200' unless length($margin);
+	$margins .= "${margin}mm ";
+    }
+
+    if ($item->att('orientation') eq 'landscape') {
+	$size = join(' ', reverse split(/ /, $size));
+    }
+
+    return "
+	\@page { size: $size; margin: $margins}
+	P { margin-bottom: 0.21cm }
+	TH P { margin-bottom: 0.21cm; font-style: italic }
+	TD P { margin-bottom: 0.21cm }
+    ";
+}
+
+use constant PageToDimensions => {
+    A1 => "59.4cm 84cm",
+    A2 => "42cm 59.4cm",
+    A3 => "29.7cm 42cm",
+    A4 => "21cm 29.7cm",
+    A5 => "14.85cm 21cm",
+    B1 => "70.7cm 100cm",
+    B2 => "50cm 70.7cm",
+    B3 => "35.3cm 50cm",
+    B4 => "25cm 35.3cm",
+    B5 => "17.7cm 25cm",
+};
 
 1;

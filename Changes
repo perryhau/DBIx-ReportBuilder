@@ -1,4 +1,78 @@
 ____________________________________________________________________________
+[  8476] By: autrijus                              on 2003/10/19  01:32:30
+        Log: * This be 0.00_12.
+	   ! Makefile.PL lib/DBIx/ReportBuilder.pm
+____________________________________________________________________________
+[  8439] By: autrijus                              on 2003/10/17  00:25:51
+        Log: * default to use big5 for odbc connections.
+	   ! lib/DBIx/ReportBuilder/Search.pm
+____________________________________________________________________________
+[  8390] By: autrijus                              on 2003/10/12  16:53:29
+        Log: * gah. font path still borken
+	   ! lib/DBIx/ReportBuilder/Graph.pm
+____________________________________________________________________________
+[  8387] By: autrijus                              on 2003/10/12  16:31:16
+        Log: * word=>excel.
+	  +> lib/DBIx/ReportBuilder/Render/MSExcel.pm
+____________________________________________________________________________
+[  8385] By: autrijus                              on 2003/10/12  16:24:57
+        Log: * fix SearchObj invocation.
+	   ! lib/DBIx/ReportBuilder/Attribute.pm
+____________________________________________________________________________
+[  8383] By: autrijus                              on 2003/10/12  15:28:02
+        Log: * fix test.
+	   ! lib/DBIx/ReportBuilder/Render.pm t/1-basic.t
+____________________________________________________________________________
+[  8379] By: autrijus                              on 2003/10/12  15:13:09
+        Log: * add ->SearchHook to further limit searchs
+             * refactor ->Fields to ::Search.
+	   ! lib/DBIx/ReportBuilder.pm lib/DBIx/ReportBuilder/Attribute.pm
+	   ! lib/DBIx/ReportBuilder/Render.pm
+	   ! lib/DBIx/ReportBuilder/Search.pm t/1-basic.t
+____________________________________________________________________________
+[  8378] By: autrijus                              on 2003/10/12  13:19:27
+        Log: * add hook mechanism
+	   ! lib/DBIx/ReportBuilder/Render.pm
+____________________________________________________________________________
+[  8371] By: autrijus                              on 2003/10/12  10:54:21
+        Log: * change 'select' to 'data_source' rendering to better
+             address table and field listing.
+	   ! lib/DBIx/ReportBuilder/Attribute.pm
+____________________________________________________________________________
+[  8306] By: autrijus                              on 2003/09/29  00:54:37
+        Log: * allow an even longer time to print.
+	   ! lib/DBIx/ReportBuilder/Render/Print.pm
+____________________________________________________________________________
+[  8295] By: autrijus                              on 2003/09/29  00:03:56
+        Log: * server-side printing support via ->RenderPrint
+	   + lib/DBIx/ReportBuilder/Render/Print.pm
+	   ! lib/DBIx/ReportBuilder/Render/MSWord.pm
+	   ! lib/DBIx/ReportBuilder/Render/SXW.pm
+____________________________________________________________________________
+[  8294] By: autrijus                              on 2003/09/28  23:50:54
+        Log: * remove an extra space.
+	   ! lib/DBIx/ReportBuilder/Render.pm
+____________________________________________________________________________
+[  8293] By: autrijus                              on 2003/09/28  23:50:08
+        Log: * can't test SXW yet.
+	   ! t/1-basic.t
+____________________________________________________________________________
+[  8292] By: autrijus                              on 2003/09/28  23:47:26
+        Log: * Hidden and Separator attributes are now honoured
+             * PageSetup now affect print dimensions
+	   ! lib/DBIx/ReportBuilder.pm lib/DBIx/ReportBuilder/Render.pm
+	   ! lib/DBIx/ReportBuilder/Render/HTML.pm
+	   ! lib/DBIx/ReportBuilder/Render/MSWord.pm
+	   ! lib/DBIx/ReportBuilder/Render/PDF.pm
+	   ! lib/DBIx/ReportBuilder/Render/SXW.pm
+____________________________________________________________________________
+[  8285] By: autrijus                              on 2003/09/28  22:14:42
+        Log: * new SXW rendering backend.
+             * pdf and msword should wait a bit longer.
+	   ! lib/DBIx/ReportBuilder/Render/MSWord.pm
+	   ! lib/DBIx/ReportBuilder/Render/PDF.pm
+	   ! lib/DBIx/ReportBuilder/Render/SXW.pm
+____________________________________________________________________________
 [  8279] By: autrijus                              on 2003/09/28  13:46:01
         Log: * This be 0.00_11.
              * MSWord export support.

@@ -1,5 +1,5 @@
 # $File: //member/autrijus/DBIx-ReportBuilder/lib/DBIx/ReportBuilder/Render/MSWord.pm $ $Author: autrijus $
-# $Revision: #3 $ $Change: 8277 $ $DateTime: 2003/09/28 13:16:30 $
+# $Revision: #6 $ $Change: 8295 $ $DateTime: 2003/09/29 00:03:56 $
 
 package DBIx::ReportBuilder::Render::MSWord;
 use base 'DBIx::ReportBuilder::Render';
@@ -17,11 +17,23 @@ sub new {
 	twig_handlers => {
 	    head	=> \&head,
 	    body	=> sub { $_->set_att( dir => 'ltr' ) },
-	    header      => sub { $_->set_tag('div'); $_->set_att( type => 'header' ) },
-	    footer      => sub { $_->set_tag('div'); $_->set_att( type => 'footer' ) },
-	    preamble	=> sub { $_->erase },
-	    content	=> sub { $_->erase },
-	    postamble	=> sub { $_->erase },
+	    header      => sub {
+		$_->att('hidden') ? $_->delete : do {
+		    $_->set_tag('div'); $_->set_att( type => 'header' );
+		    $_->set_att( style => 'border-bottom: 1px black solid' )
+			if $_->att('separator');
+		};
+	    },
+	    footer      => sub {
+		$_->att('hidden') ? $_->delete : do {
+		    $_->set_tag('div'); $_->set_att( type => 'footer' );
+		    $_->set_att( style => 'border-top: 1px black solid' )
+			if $_->att('separator');
+		};
+	    },
+	    preamble	=> sub { $_->att('hidden') ? $_->delete : $_->erase },
+	    content	=> sub { $_->att('hidden') ? $_->delete : $_->erase },
+	    postamble	=> sub { $_->att('hidden') ? $_->delete : $_->erase },
 	    var		=> \&var,
 	    %{$args{twig_handlers}||{}},
 	},
@@ -76,10 +88,11 @@ sub Render {
     close $fh;
 
     if ($^O eq 'MSWin32') {
-	for (1..10) {
-	    sleep 1;
+	for (1..20) {
 	    last if -s "$tmpdir/out.doc";
+	    sleep 1;
 	}
+	sleep 1;
     }
     else {
 	system(
@@ -99,7 +112,6 @@ sub Render {
     local $/;
     my $rv = <$fh>;
     close $fh;
-    warn $tmpdir;
     unlink "$tmpdir/out.doc";
     unlink "$tmpdir/out.sxw";
     unlink "$tmpdir/out.html";
@@ -123,6 +135,7 @@ sub var {
 }
 
 sub head {
+    my $self = shift;
     $_->insert_new_elt(
 	'meta' => {
 	    'http-equiv'    => 'content-type',
@@ -130,12 +143,7 @@ sub head {
 	}
     );
     $_->insert_new_elt(
-	style => {}, '
-	    @page { size: 21cm 29.7cm; margin: 2cm }
-	    P { margin-bottom: 0.21cm }
-	    TH P { margin-bottom: 0.21cm; font-style: italic }
-	    TD P { margin-bottom: 0.21cm }
-	'
+	style => {}, $self->HeadDimensions($_)
     );
 }
 

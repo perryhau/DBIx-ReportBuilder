@@ -1,10 +1,12 @@
-# $File: //member/autrijus/DBIx-ReportBuilder/lib/DBIx/ReportBuilder/Render/SXW.pm $ $Author: autrijus $
-# $Revision: #4 $ $Change: 8295 $ $DateTime: 2003/09/29 00:03:56 $
+# $File: //member/autrijus/DBIx-ReportBuilder/lib/DBIx/ReportBuilder/Render/Print.pm $ $Author: autrijus $
+# $Revision: #2 $ $Change: 8306 $ $DateTime: 2003/09/29 00:54:37 $
 
-package DBIx::ReportBuilder::Render::SXW;
+package DBIx::ReportBuilder::Render::Print;
 use base 'DBIx::ReportBuilder::Render';
 use strict;
 use NEXT;
+
+# XXX - eventually make this the baseclass for PDF, Print and MSWord
 
 use File::Spec;
 use File::Temp 'mkdtemp';
@@ -82,14 +84,14 @@ sub Render {
     );
     open $fh, ">$convert" or die $!;
     binmode($fh);
-    my $macro = +SXWConverter();
+    my $macro = +PrintConverter();
     $macro =~ s/\$PATH/$absdir/g;
     print $fh $macro;
     close $fh;
 
     if ($^O eq 'MSWin32') {
-	for (1..20) {
-	    last if -s "$tmpdir/out.sxw";
+	for (1..60) {
+	    last if -s "$tmpdir/out.prn";
 	    sleep 1;
 	}
 	sleep 1;
@@ -103,19 +105,14 @@ sub Render {
 	);
     }
     for (1..10) {
-	last if -s "$tmpdir/out.sxw";
+	last if -s "$tmpdir/out.prn";
 	sleep 1;
     }
 
-    open $fh, "$tmpdir/out.sxw" or die "$!: $? ($tmpdir)";
-    binmode($fh);
-    local $/;
-    my $rv = <$fh>;
-    close $fh;
-    unlink "$tmpdir/out.sxw";
+    unlink "$tmpdir/out.prn";
     unlink "$tmpdir/out.html";
     rmdir $tmpdir;
-    return $rv;
+    return 1;
 }
 
 my %VarAtt = (
@@ -148,24 +145,24 @@ sub head {
 
 1;
 
-use constant SXWConverter => q{
+use constant PrintConverter => q{
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <HTML>
 <HEAD>
 <META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
-<TITLE>SXW Converter</TITLE>
+<TITLE>Print Converter</TITLE>
 <META HTTP-EQUIV="CONTENT-SCRIPT-TYPE" CONTENT="text/x-StarBasic">
 <SCRIPT LANGUAGE="StarBasic">
 <!--
 ' $LIBRARY: Standard
-' $MODULE: HTML2SXW
-Sub HTML2SXW
+' $MODULE: HTML2Print
+Sub HTML2Print
     Dim oDesktop As Object
     Dim sInDir As String
     Dim sOutDir As String
     Dim sFile As String
     Dim sURL As String
-    Dim sSXW As String
+    Dim sPrint As String
     Dim oDocument As Object   
 
     On Error Resume Next
@@ -177,9 +174,7 @@ Sub HTML2SXW
     aLoad(0).Name  = "Hidden"
     aLoad(0).Value = True
 
-    Dim aStore(0) As New com.sun.star.beans.PropertyValue
-    aStore(0).Name  = "FilterName"
-    aStore(0).Value = "writer_web_StarOffice_XML_Writer"
+    Dim aPrint(0) As New com.sun.star.beans.PropertyValue
 
     oDesktop = createUnoService("com.sun.star.frame.Desktop")
     sFile = Dir(sInDir+"*.html")
@@ -187,8 +182,9 @@ Sub HTML2SXW
     While sFile <> ""
 	sURL = sInDir + sFile
 	oDocument=oDesktop.loadComponentFromURL(sURL, "_blank", 0, aLoad())
-	sSXW = sOutDir + Left(sFile, Len(sFile)-5) + ".sxw"
-	oDocument.storeToURL(sSXW,aStore())
+	sPrint = sOutDir + Left(sFile, Len(sFile)-5) + ".prn"
+	oDocument.print(aPrint())
+	oDocument.storeToURL(sPrint,aStore())
 	oDocument.dispose()
 	sFile = Dir
     Wend 
@@ -198,6 +194,6 @@ End Sub
 ' -->
 </SCRIPT>
 </HEAD>
-<BODY LANG="" DIR="LTR" SDONLOAD="Standard.HTML2SXW.HTML2SXW"></BODY>
+<BODY LANG="" DIR="LTR" SDONLOAD="Standard.HTML2Print.HTML2Print"></BODY>
 </HTML>
 };

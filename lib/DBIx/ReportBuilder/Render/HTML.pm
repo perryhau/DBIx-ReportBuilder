@@ -1,5 +1,5 @@
 # $File: //member/autrijus/DBIx-ReportBuilder/lib/DBIx/ReportBuilder/Render/HTML.pm $ $Author: autrijus $
-# $Revision: #5 $ $Change: 8070 $ $DateTime: 2003/09/12 01:49:30 $
+# $Revision: #6 $ $Change: 8292 $ $DateTime: 2003/09/28 23:47:26 $
 
 package DBIx::ReportBuilder::Render::HTML;
 use base 'DBIx::ReportBuilder::Render';
@@ -21,6 +21,16 @@ sub new {
     );
 };
 
-sub section { $_->erase }
+sub section {
+    if ($_->att('separator')) {
+	if ($_->tag eq 'header') {
+	    $_->insert_new_elt(last_child => 'hr');
+	}
+	elsif ($_->tag eq 'footer') {
+	    $_->insert_new_elt(first_child => 'hr');
+	}
+    }
+    $_->att('hidden') ? $_->delete : $_->erase;
+}
 
 1;

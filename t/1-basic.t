@@ -1,7 +1,7 @@
 # $File: //member/autrijus/DBIx-ReportBuilder/t/1-basic.t $ $Author: autrijus $
-# $Revision: #39 $ $Change: 8214 $ $DateTime: 2003/09/23 04:29:48 $
+# $Revision: #42 $ $Change: 8383 $ $DateTime: 2003/10/12 15:28:02 $
 
-use Test::More tests => 174;
+use Test::More tests => 177;
 use FindBin;
 
 use strict;
@@ -39,12 +39,11 @@ is($obj->ClauseObj, undef, 'ClauseObj is undefined');
 is($obj->GraphObj, undef, 'GraphObj is undefined');
 
 # }}}
-# Document - HTML, Edit, XML, [SXW] {{{
+# Document - HTML, Edit, XML {{{
 
 my $render = $obj->RenderEdit;
 is($obj->RenderEdit, $render, 'RenderEdit consistency');
 is($obj->RenderHTML, $obj->RenderHTML, 'RenderHTML consistency');
-is($obj->RenderSXW, $obj->RenderSXW, 'RenderSXW consistency');
 is($obj->RenderXML,
     '<?xml version="1.0" encoding="UTF-8"?>' . "\n" . $obj->root->sprint,
     'RenderXML consistency');
@@ -334,6 +333,22 @@ is($obj->ClauseObj(1)->text, 20, 'Text of limit is still 20');
 is($table->last_child('tbody')->text,
     "Table => '', Field => 'id', Operator => '<', Text => '20'",
     'Correctly renders second tbody');
+
+# }}}
+# Edit rendering - SearchHook {{{
+$obj->SetSearchHook(sub {
+    my ($item, $table, $SB) = @_;
+    isa_ok($item, 'XML::Twig::Elt', 'Item from SearchHook');
+    isa_ok($table, 'HASH', 'Table from SearchHook');
+    isa_ok($SB, 'DBIx::ReportBuilder::Search', 'SB from SearchHook');
+    $SB->Limit( FIELD => 'Foo', VALUE => '0' ); # make it impossible
+});
+($table) = $obj->RenderEditObj->root->get_xpath(
+    '/div/table/tr[3]/td[2]/table/tr/td/table'
+);
+is($table->first_child('tbody')->children, 1,
+    'Edit should return zero rows after SearchHook');
+$obj->SetSearchHook;
 
 # }}}
 # Navigation - Part - Graph: Insert, Change {{{
