@@ -1,5 +1,5 @@
 # $File: //member/autrijus/DBIx-ReportBuilder/lib/DBIx/ReportBuilder/Attribute.pm $ $Author: autrijus $
-# $Revision: #21 $ $Change: 8117 $ $DateTime: 2003/09/13 23:42:17 $
+# $Revision: #23 $ $Change: 8208 $ $DateTime: 2003/09/22 14:07:31 $
 
 package DBIx::ReportBuilder::Attribute;
 use strict;
@@ -65,10 +65,10 @@ use constant Tag2Attributes => {
     table       => [ qw( table rows font size border caption ) ],
     graph       => [ qw( table shape style legend threed threed_shading cumulate
 			 show_values values_vertical rotate_chart caption ) ],
-    join	=> [ qw( table field table2 field2 ) ],  # type
+    join	=> [ qw( table field table2 field2 ) ], # type
     limit	=> [ qw( table field operator text ) ], # entryaggregator 
     orderby	=> [ qw( table field order ) ],
-    cell	=> [ qw( field font size align formula text ) ],
+    cell	=> [ qw( table field font size align formula text ) ],
 };
 
 use constant Data => {
@@ -279,8 +279,20 @@ sub _fields2 {
 }
 sub _tables {
     my $self = shift;
-    sort map { s/^\W+//; s/\W+$//; $_ }
-	$self->ReportBuilderObj->Handle->dbh->tables;
+    my $tag = $self->Object->tag;
+    if ($self->Att eq 'table2' or $tag eq 'table' or $tag eq 'graph') {
+	return sort map { s/^\W+//; s/\W+$//; $_ }
+	    $self->ReportBuilderObj->Handle->dbh->tables;
+    }
+    else {
+	my %tables;
+	my $obj = $self->Object->parent->parent or return;
+	$tables{ $obj->att('table') }++;
+	foreach my $clause ($obj->first_child('joins')->children) {
+	    $tables{ $clause->att('table2') }++;
+	}
+	return sort grep defined, grep length, keys %tables;
+    }
 }
 sub _tables2 { goto &_tables }
 

@@ -1,4 +1,18 @@
 ____________________________________________________________________________
+[  8216] By: autrijus                              on 2003/09/23  04:31:26
+        Log: * This be 0.00_10.
+	   ! lib/DBIx/ReportBuilder.pm
+____________________________________________________________________________
+[  8214] By: autrijus                              on 2003/09/23  04:29:48
+        Log: * 'cell' now takes a "table" attribute to display fields of joined tables.
+             * DBIx::ReportBuilder::Search now implements ->Cell to facilitate it.
+	   ! lib/DBIx/ReportBuilder/Render.pm
+	   ! lib/DBIx/ReportBuilder/Search.pm t/1-basic.t
+____________________________________________________________________________
+[  8206] By: autrijus                              on 2003/09/22  13:41:07
+        Log: * only display table selection from already joined tables.
+	   ! lib/DBIx/ReportBuilder/Attribute.pm
+____________________________________________________________________________
 [  8192] By: autrijus                              on 2003/09/20  15:30:16
         Log: * This be 0.00_09.
              * properly skips pdf generation on machines without OOo.

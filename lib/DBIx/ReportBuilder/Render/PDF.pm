@@ -1,5 +1,5 @@
 # $File: //member/autrijus/DBIx-ReportBuilder/lib/DBIx/ReportBuilder/Render/PDF.pm $ $Author: autrijus $
-# $Revision: #4 $ $Change: 8192 $ $DateTime: 2003/09/20 15:30:16 $
+# $Revision: #5 $ $Change: 8203 $ $DateTime: 2003/09/22 09:10:06 $
 
 package DBIx::ReportBuilder::Render::PDF;
 use base 'DBIx::ReportBuilder::Render';
@@ -63,7 +63,7 @@ sub Render {
     close $fh;
 
     my $absdir = File::Spec->rel2abs($tmpdir);
-    $absdir =~ s{:}{|}g;
+    $absdir =~ s{^(\w):}{/$1:}g;
     $absdir =~ s{\\}{/}g;
     my $convert = File::Spec->catfile(
 	$basedir, substr($tmpdir, -8) . '.htm'
@@ -74,23 +74,35 @@ sub Render {
     $macro =~ s/\$PATH/$absdir/g;
     print $fh $macro;
     close $fh;
-    system(
-	($ENV{SWRITER} || ($^O eq 'MSWin32'
-	    ? "C:/Progra~2/OpenOf~1/program/swriter.exe"
-	    : "/usr/local/OpenOffice.org1.1.0/program/swriter")),
-	$convert,
-    );
 
-    # warn "Rendered into $tmpdir\n";
+    if ($^O eq 'MSWin32') {
+	for (1..10) {
+	    sleep 1;
+	    last if -s "$tmpdir/out.pdf";
+	}
+    }
+    else {
+	system(
+	    ($ENV{SWRITER} || ($^O eq 'MSWin32'
+		? "C:/Progra~1/OpenOf~1.0/program/soffice.exe"
+		: "/usr/local/OpenOffice.org1.1.0/program/swriter")),
+	    $convert,
+	);
+    }
     for (1..10) {
 	last if -s "$tmpdir/out.pdf";
 	sleep 1;
     }
 
-    open $fh, "$tmpdir/out.pdf" or die $!;
+    open $fh, "$tmpdir/out.pdf" or die "$!: $? ($tmpdir)";
     binmode($fh);
     local $/;
-    return <$fh>;
+    my $rv = <$fh>;
+    close $fh;
+    unlink "$tmpdir/out.pdf";
+    unlink "$tmpdir/out.html";
+    rmdir $tmpdir;
+    return $rv;
 }
 
 my %VarAtt = (

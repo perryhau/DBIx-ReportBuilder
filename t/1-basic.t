@@ -1,7 +1,7 @@
 # $File: //member/autrijus/DBIx-ReportBuilder/t/1-basic.t $ $Author: autrijus $
-# $Revision: #38 $ $Change: 8192 $ $DateTime: 2003/09/20 15:30:16 $
+# $Revision: #39 $ $Change: 8214 $ $DateTime: 2003/09/23 04:29:48 $
 
-use Test::More tests => 173;
+use Test::More tests => 174;
 use FindBin;
 
 use strict;
@@ -226,6 +226,7 @@ isa_ok($obj->PartObj, 'DBIx::ReportBuilder::Part::Img');
 is($obj->SetPartId(0), 3, 'PartId autofocus to 3 even for non-P elements');
 
 SKIP: {
+    skip('Skip OOo test unless $ENV{OOO} is set', 1) unless $ENV{OOO};
     my $pdf = eval { $obj->RenderPDF } or skip("Can't find OOo", 1);
     like($pdf, qr(^%PDF), 'RenderPDF succeeded');
 }
@@ -309,7 +310,7 @@ is_deeply(
 is($obj->ClauseInsertCell(
     field => 'id',
     text => '100xId',
-    formula => '(($_ + $id) * 50) . $Era'
+    formula => '(($_ + $id) * 100) . $Era'
 ), 4, 'Insert cell increments ClauseId');
 
 # }}}
@@ -355,6 +356,8 @@ is($obj->ClauseInsertCell( field => 'id', text => 'Id' ),
     5, 'Insert cell increments ClauseId');
 is($obj->ClauseInsertCell( field => 'name', text => 'Name' ),
     6, 'Insert cell increments ClauseId');
+is($obj->ClauseInsertCell( field => 'name', text => 'QueueName', table => 'queues' ),
+    7, 'Insert cell increments ClauseId');
 is($obj->ClauseObj->parent->parent->tag, 'graph', "Cell belongs to the correct parent");
 
 is($obj->ClauseInsertJoin( field => 'queue', table2 => 'queues', field2 => 'id' ),
@@ -380,9 +383,9 @@ my ($graph_as_table) = $obj->RenderEditObj->root->get_xpath(
 );
 isa_ok($graph_as_table, 'XML::Twig::Elt', 'GraphAsTable from get_xpath');
 is($graph_as_table->first_child('thead')->text,
-    'IdName', 'Correctly renders thead');
+    'IdNameQueueName', 'Correctly renders thead');
 like($graph_as_table->first_child('tbody')->text,
-    qr(^(?:\d+New Pending Approval\d+Approval Passed)?\Q......\E), 'Correctly renders tbody');
+    qr(^(?:\d+New Pending Approval___Approvals\d+\w*\s*Approvals?\s*\w*___Approvals)?\Q......\E), 'Correctly renders tbody');
 
 isa_ok($obj->PartObj->set_tag('graph'),
     'DBIx::ReportBuilder::Part::Graph', 'Table->set_tag("graph")');

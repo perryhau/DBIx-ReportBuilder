@@ -1,5 +1,5 @@
 # $File: //member/autrijus/DBIx-ReportBuilder/lib/DBIx/ReportBuilder/Render.pm $ $Author: autrijus $
-# $Revision: #18 $ $Change: 8081 $ $DateTime: 2003/09/12 22:59:29 $
+# $Revision: #19 $ $Change: 8214 $ $DateTime: 2003/09/23 04:29:48 $
 
 package DBIx::ReportBuilder::Render;
 
@@ -14,6 +14,7 @@ sub new {
 	twig_handlers => {
 	    cells	=> \&cells,
 	    join	=> \&join,
+	    cell	=> \&cell,
 	    limit	=> \&limit,
 	    orderby     => \&orderby,
 	    table	=> \&table,
@@ -118,7 +119,10 @@ sub _do_search {
 	my $td_cnt = -1; ++$tr_cnt;
 	foreach my $item (@$children) {
 	    my $td = $item->copy;
-	    my $text = $Record->{$td->att('field')};
+	    my $text = $Record->{
+		lc($td->att('table') || $SB->{table}) . '_' .
+		lc($td->att('field'))
+	    };
 	    my $formula = $td->att('formula');
 	    if (defined($formula) and length($formula)) {
 		my $safe = Safe->new;
@@ -213,6 +217,15 @@ sub limit {
     $SB->Limit(
 	CASESENSITIVE => 1,
 	VALUE	      => $item->text,
+	(map { uc($_) => $item->att($_) } $item->att_names),
+	_alias($item),
+    );
+}
+
+sub cell {
+    my $item = $_;
+    my $SB = $item->parent->parent->att('#SearchBuilder');
+    $SB->Cell(
 	(map { uc($_) => $item->att($_) } $item->att_names),
 	_alias($item),
     );
