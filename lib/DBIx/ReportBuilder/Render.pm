@@ -1,5 +1,5 @@
 # $File: //member/autrijus/DBIx-ReportBuilder/lib/DBIx/ReportBuilder/Render.pm $ $Author: autrijus $
-# $Revision: #12 $ $Change: 8047 $ $DateTime: 2003/09/11 00:35:14 $
+# $Revision: #15 $ $Change: 8060 $ $DateTime: 2003/09/12 00:58:49 $
 
 package DBIx::ReportBuilder::Render;
 
@@ -74,27 +74,33 @@ sub cells {
     my $item = $_;
     my @children = $item->cut_children;
     my $tr = $item->insert('thead', 'tr');
+    my $Headers = $item->parent->att('#Headers');
+
     foreach my $item (@children) {
 	my $th = $tr->insert_new_elt(last_child => 'th');
 	$th->set_text($item->text);
 	$th->set_att( %{$_->atts} );
 	$th->set_id($item->id);
 	$item->set_tag('td');
+	push @$Headers, $item->text;
     }
-    my $tbody = $item->insert_new_elt(last_child => 'tbody');
+
+    $item->insert_new_elt(last_child => 'tbody')
+	if $item->parent->tag eq 'table';
 
     $self->_do_search(
-	$item->parent->att('SearchBuilder'),
-	$tbody,
+	$item,
+	$item->parent->att('#SearchBuilder'),
+	$item->parent->att('#Result'),
+	$item->last_child('tbody'),
 	\@children,
     );
 
-    $item->parent->del_att(qw( Tables OrderBy SearchBuilder ));
     $item->erase;
 }
 
 sub _do_search {
-    my ($self, $SB, $tbody, $children) = @_;
+    my ($self, $item, $SB, $result, $tbody, $children) = @_;
 
     return unless $SB and $SB->RedoSearch;
 
@@ -104,9 +110,12 @@ sub _do_search {
 	$self->Object->ucase($_) => $self->Object->Var($_),
     } $self->Object->Vars;
 
-    while (my $Record = $SB->Next) {
-	my $tr = $tbody->insert_new_elt(last_child => 'tr');
+    $SB->DEBUG(1) if $::DEBUG;
 
+    my $tr_cnt = -1;
+    while (my $Record = $SB->Next) {
+	my $tr = $tbody->insert_new_elt(last_child => 'tr') if $tbody;
+	my $td_cnt = -1; ++$tr_cnt;
 	foreach my $item (@$children) {
 	    my $td = $item->copy;
 	    my $text = $Record->{$td->att('field')};
@@ -126,6 +135,12 @@ sub _do_search {
 		local $SIG{__DIE__}	= sub {};
 		$text = $safe->reval($formula);
 	    }
+
+	    if (!$tr) {
+		# this is a graph part
+		$result->[++$td_cnt][$tr_cnt] = $text;
+		next;
+	    }
 	    $td->set_text($text);
 	    $td->del_att(qw( id field formula ));
 	    $td->paste(last_child => $tr);
@@ -141,14 +156,13 @@ sub table {
     $item->insert_new_elt('caption', {
 	map { $_ => $item->att($_) } grep { $item->att($_) } qw( font size )
     }, $item->att('caption') );
-    $item->del_att(Atts($item));
+    $item->del_att(grep !/border/, Atts($item));
 }
 
 sub graph {
     my $self = shift;
     my $item = $_;
-    $_ = $item->insert('table');
-    return $self->table;
+    $self->table($item);
 }
 
 sub search {
@@ -165,21 +179,25 @@ sub search {
 	$SB->FirstRow( $item )
     }
 
-    $_->set_att('Tables' => {});	    # key: table, val: alias
-    $_->set_att('OrderBy' => []);
-    $_->set_att('SearchBuilder' => $SB);
+    $_->set_att(
+	'#Tables'	    => {},	# key: table, val: alias
+	'#OrderBy'	    => [],	# passed to OrderByCols
+	'#SearchBuilder'    => $SB,	# SearchBuilder object
+	'#Result'	    => [],	# result set
+	'#Headers'	    => [],	# header set
+    );
 }
 
 sub _alias {
-    my $Tables = $_[0]->parent->parent->att('Tables');
+    my $Tables = $_[0]->parent->parent->att('#Tables');
     my $rv = $Tables->{$_[0]->att('table')} or return;
     return (ALIAS => $rv);
 };
 
 sub join {
     my $item  = $_;
-    my $SB     = $item->parent->parent->att('SearchBuilder');
-    my $Tables = $item->parent->parent->att('Tables');
+    my $SB     = $item->parent->parent->att('#SearchBuilder');
+    my $Tables = $item->parent->parent->att('#Tables');
     $Tables->{$_->att('table2')} = $SB->Join(
 	TYPE	=> ($item->att('type') || 'left'),
 	ALIAS1	=> ($Tables->{$item->att('table') || ''} || 'main'),
@@ -192,7 +210,7 @@ sub join {
 
 sub limit {
     my $item = $_;
-    my $SB = $item->parent->parent->att('SearchBuilder');
+    my $SB = $item->parent->parent->att('#SearchBuilder');
     $SB->Limit(
 	CASESENSITIVE => 1,
 	VALUE	      => $item->text,
@@ -203,7 +221,7 @@ sub limit {
 
 sub orderby {
     my $item = $_;
-    my $OrderBy = $item->parent->parent->att('OrderBy');
+    my $OrderBy = $item->parent->parent->att('#OrderBy');
     push @$OrderBy, {
 	(map { uc($_) => $item->att($_) } $item->att_names),
 	_alias($item),
@@ -212,8 +230,8 @@ sub orderby {
 
 sub orderbys {
     my $item    = $_;
-    my $SB      = $item->parent->att('SearchBuilder');
-    my $OrderBy = $item->parent->att('OrderBy');
+    my $SB      = $item->parent->att('#SearchBuilder');
+    my $OrderBy = $item->parent->att('#OrderBy');
     $SB->OrderByCols( @$OrderBy ) if @$OrderBy;
     $_->delete;
 }

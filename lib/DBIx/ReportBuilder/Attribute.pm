@@ -1,5 +1,5 @@
 # $File: //member/autrijus/DBIx-ReportBuilder/lib/DBIx/ReportBuilder/Attribute.pm $ $Author: autrijus $
-# $Revision: #14 $ $Change: 8047 $ $DateTime: 2003/09/11 00:35:14 $
+# $Revision: #16 $ $Change: 8060 $ $DateTime: 2003/09/12 00:58:49 $
 
 package DBIx::ReportBuilder::Attribute;
 use strict;
@@ -23,6 +23,8 @@ sub Value {
     my $att  = $self->Att;
 
     return $obj->att($att) unless $att eq 'text';
+
+    # Text attribute needs $Var escaping
 
     $obj = $obj->copy;
     foreach my $var ($obj->children('var')) {
@@ -143,8 +145,12 @@ use constant Data => {
     },
     style	=> {
 	type		=> 'select',
-	values		=> [qw(bar cylinder)],
-	disabled	=> sub { $_[0]->Object->att('type') ne 'bars' },
+	values		=> sub {
+	    ($_[0]->Object->att('type') eq 'bars')
+		? qw(bar cylinder)
+		: qw(line dots)
+	},
+	disabled	=> sub { $_[0]->Object->att('type') eq 'pie' },
 	default		=> 'bar',
     },
     legend	=> {
@@ -236,7 +242,8 @@ sub _fonts { 'serif', 'sans serif', 'monotype' }
 sub _fields {
     my $self = shift;
     my $table = shift;
-    $table ||= $self->Object->parent->parent->att('table') or return;
+    my $obj = $self->Object->parent->parent;
+    $table ||= $obj->att('table') or return;
     my $dbh = $self->ReportBuilderObj->Handle->dbh;
     my $driver = $dbh->{Driver}{Name};
 

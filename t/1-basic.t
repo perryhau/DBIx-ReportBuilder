@@ -1,7 +1,7 @@
 # $File: //member/autrijus/DBIx-ReportBuilder/t/1-basic.t $ $Author: autrijus $
-# $Revision: #24 $ $Change: 8047 $ $DateTime: 2003/09/11 00:35:14 $
+# $Revision: #28 $ $Change: 8063 $ $DateTime: 2003/09/12 01:08:45 $
 
-use Test::More tests => 152;
+use Test::More tests => 165;
 use FindBin;
 
 use strict;
@@ -49,12 +49,17 @@ is($obj->Render, $obj->RenderHTML, 'Render means RenderHTML');
 # Navigation - Cursor position, Reload, Recount {{{
 
 is($obj->PartId, 3, 'PartId autoposition');
+is($obj->SectionId, 3, 'SectionId autoposition');
 is($obj->ClauseId, 0, 'ClauseId does not have autoposition');
 ok($obj->Reload, 'Reload successful');
 is($obj->PartId, 3, 'Reload does not move PartId');
 is($obj->RenderEdit, $render, 'Render consistency across reload');
 is($obj->Recount, 3, 'Recount returns PartId under scalar context');
 is($obj->RenderEdit, $render, 'Render consistency across recount');
+is($obj->SetSectionId(1), 1, 'Set SectionId to 1');
+is($obj->PartId, 1, 'PartId autopositon with SectionId');
+is($obj->SetPartId(3), 3, 'Set PartId to 3');
+is($obj->SectionId, 3, 'SectionId autopositon with PartId');
 
 # }}}
 # Attribute {{{
@@ -68,6 +73,22 @@ is_deeply( [$obj->PartObj->Att('shape')->Values],
 is( $obj->PartObj->Att('shape')->Default,
     'bars', 'Att("shape") has the correct default values');
 ok( !$obj->PartObj->Att('shape')->Applicable, 'It is not applicable to P');
+
+# }}}
+# Graph {{{
+
+foreach my $shape ($obj->PartObj->Att('shape')->Values) {
+    my $graph = $obj->NewGraph(
+	shape  => $shape,
+	width  => 100,
+	height => 100,
+    );
+    my $png = $graph->Plot(
+	labels	=> [ 'a' .. 'c' ],
+	data	=> [[ 1 .. 3 ]],
+    );
+    like($png, qr(^\x89PNG), 'Graph plotted');
+}
 
 # }}}
 # Navigation - Invalid input {{{
@@ -117,7 +138,7 @@ is($obj->PartChange( text => "Hello, cruel \$Date" ), 3, 'Set vars in text');
 
 my ($var) = $obj->PartObj->first_child('var');
 isa_ok($var, 'XML::Twig::Elt', 'VAR from get_xpath');
-is($var->att('name'), 'date');
+is($var->att('name'), 'date', "Variable name is in lcase");
 
 my ($p_var) = $obj->RenderEditObj->root->get_xpath(
     '/div/table/tr[3]/td[2]/table/tr/td/p'
@@ -185,7 +206,8 @@ isa_ok($obj->PartObj, 'DBIx::ReportBuilder::Part::Img');
 open my $fh, "$FindBin::Bin/test.png" or die $!;
 is($obj->PartChange(src => $fh), 4, "Upload an image");
 like($obj->PartObj->att('src'),
-    qr(^javascript:'\\x89\\x50\\x4e\\x47\\x0d\\x0a), 'Image parsed as base64');
+    qr(^javascript:'\\x89\\x50\\x4e\\x47\\x0d\\x0a), 'Image parsed');
+close $fh;
 
 $obj->SetPartId(3);
 is($obj->PartRemove, 3, 'Remove p returns PartId to 3');
@@ -278,6 +300,7 @@ is($obj->ClauseInsertCell(
 # Edit rendering - Part - Table {{{
 
 is($obj->RenderEdit, $obj->RenderEdit, 'RenderEdit consistency');
+
 my ($table) = $obj->RenderEditObj->root->get_xpath(
     '/div/table/tr[3]/td[2]/table/tr/td/table'
 );
@@ -351,11 +374,9 @@ isa_ok($obj->PartObj->set_tag('graph'),
 # Edit rendering - Part - Graph {{{
 
 my ($graph) = $obj->RenderEditObj->root->get_xpath(
-    '/div/table/tr[3]/td[2]/table/tr[2]/td/graph'
+    '/div/table/tr[3]/td[2]/table/tr[2]/td/table'
 );
 isa_ok($graph, 'XML::Twig::Elt', 'Graph from get_xpath');
-
-# XXX - graph should show image
 
 # }}}
 }
@@ -373,12 +394,22 @@ my ($include) = $obj->RenderEditObj->root->get_xpath(
 isa_ok($include, 'XML::Twig::Elt', 'Include from get_xpath');
 is($include->text, 'include: #3', 'Correctly renders include');
 
-# XXX - test for renderreport in RenderHTMLObj
+isa_ok($obj->SetDescribeReport( sub { "Report #$_[0]" } ),
+    'CODE', 'Setting DescribeReport callback');
+
+($include) = $obj->RenderEditObj->root->get_xpath(
+    '/div/table/tr[3]/td[2]/table/tr[3]/td/include'
+);
+isa_ok($include, 'XML::Twig::Elt', 'Include from get_xpath');
+is($include->text,
+    'include: Report #3', 'Correctly renders include with the new callback');
+
+($include) = $obj->RenderHTMLObj->root->get_xpath(
+    '/html/body/div'
+);
+isa_ok($include, 'XML::Twig::Elt', 'Include from get_xpath');
+is($include->text, '#3', 'Correctly renders include in HTML');
 
 # }}}
-
-
-# TODO Edit rendering - Part - Include
-# TODO upload image
 
 1;

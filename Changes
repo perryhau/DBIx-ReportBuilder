@@ -1,4 +1,43 @@
 ____________________________________________________________________________
+[  8062] By: autrijus                              on 2003/09/12  01:05:14
+        Log: * This be 0.00_06.
+	   ! MANIFEST lib/DBIx/ReportBuilder.pm
+____________________________________________________________________________
+[  8060] By: autrijus                              on 2003/09/12  00:58:49
+        Log: * Graph rendering it ready at last!
+	   ! lib/DBIx/ReportBuilder/Attribute.pm
+	   ! lib/DBIx/ReportBuilder/Render.pm
+	   ! lib/DBIx/ReportBuilder/Render/Edit.pm
+	   ! lib/DBIx/ReportBuilder/Render/HTML.pm
+____________________________________________________________________________
+[  8059] By: autrijus                              on 2003/09/11  23:13:12
+        Log: * preliminary Graph support.
+	   ! lib/DBIx/ReportBuilder.pm lib/DBIx/ReportBuilder/Part.pm
+	   ! lib/DBIx/ReportBuilder/Render/Edit.pm
+____________________________________________________________________________
+[  8058] By: autrijus                              on 2003/09/11  22:21:42
+        Log: * $ReportBuilder->NewGraph now creates graph objects.  Currently
+             only GD is supported.
+	   + lib/DBIx/ReportBuilder/Graph.pm
+	   ! lib/DBIx/ReportBuilder.pm lib/DBIx/ReportBuilder/Attribute.pm
+	   ! lib/DBIx/ReportBuilder/Graph/GD.pm
+	   ! lib/DBIx/ReportBuilder/Render.pm t/1-basic.t
+____________________________________________________________________________
+[  8057] By: autrijus                              on 2003/09/11  20:55:07
+        Log: * start thinking about multibackend Graphs
+	  +> lib/DBIx/ReportBuilder/Graph/GD.pm
+	   - lib/DBIx/ReportBuilder/Graph.pm
+____________________________________________________________________________
+[  8055] By: autrijus                              on 2003/09/11  20:21:27
+        Log: * implements ->SectionId and ->SetSectionId plus tests.
+             * implements and test correct HTML rendering of Include parts.
+	   ! lib/DBIx/ReportBuilder.pm
+	   ! lib/DBIx/ReportBuilder/Render/HTML.pm t/1-basic.t
+____________________________________________________________________________
+[  8053] By: autrijus                              on 2003/09/11  16:19:19
+        Log: * sprinkle some $::DEBUG statements.
+	   ! lib/DBIx/ReportBuilder/Render.pm t/1-basic.t
+____________________________________________________________________________
 [  8048] By: autrijus                              on 2003/09/11  00:35:39
         Log: * This be 0.00_05.
 	   ! lib/DBIx/ReportBuilder.pm

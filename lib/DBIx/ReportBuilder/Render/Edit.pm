@@ -1,5 +1,5 @@
 # $File: //member/autrijus/DBIx-ReportBuilder/lib/DBIx/ReportBuilder/Render/Edit.pm $ $Author: autrijus $
-# $Revision: #9 $ $Change: 8047 $ $DateTime: 2003/09/11 00:35:14 $
+# $Revision: #11 $ $Change: 8060 $ $DateTime: 2003/09/12 00:58:49 $
 
 package DBIx::ReportBuilder::Render::Edit;
 use base 'DBIx::ReportBuilder::Render';
@@ -27,6 +27,8 @@ sub new {
 	    joins	=> \&clauses,
 	    limits	=> \&clauses,
 	    orderbys	=> \&clauses,
+	    table	=> \&twigTable,
+	    graph	=> \&twigGraph,
 	    %{$args{twig_handlers}||{}},
 	},
 	start_tag_handlers => {
@@ -107,10 +109,10 @@ sub clause {
     $self->Object->SetTrigger($trigger) if $checked;
 }
 
-sub table {
+sub twigTable {
     my $self    = shift;
     my $part    = shift or return;
-    my $part_id = shift;
+    my $part_id = shift || $self->Object->PartId;
     my $clause_cur = $self->Object->ClauseId;
 
     my $cnt = 0;
@@ -120,16 +122,16 @@ sub table {
 	$cnt++;
     }
 
-    $part->set_att(border => 3);
+    $part->set_att(border => '3');
     $part->set_att(bgcolor => '#c9c9c9');
 
     my $tbody = $part->first_child('tbody');
-    if ($cnt) {
+    if ($cnt and $tbody) {
 	my $tr = $tbody->insert_new_elt(last_child => 'tr');
 	$tr->insert_new_elt('td', '...') for 1 .. $cnt;
     }
 
-    my $clauses = $part->att('#Clauses') or return;
+    my $clauses = $part->att('#Clauses') || $part->parent('#Clauses') or return;
     return unless @$clauses;
 
     $tbody = $part->insert_new_elt(last_child => 'tbody');
@@ -153,12 +155,50 @@ sub table {
     }
 }
 
-sub graph {
+sub twigGraph {
+    my $self = shift;
+    my $item = shift;
+    $self->twigTable($item, @_);
+
+    $item->set_tag('table');
+    $item->set_att(
+	'#Tag'	    => 'graph',
+	'width'	    => '100%',
+	'border'    => '3',
+    );
+
+    my $graph = $self->Object->NewGraph(
+	%{ $item->atts },
+	width  => 400,
+	height => 300,
+    ) or return;
+    my $png = $graph->Plot(
+	labels	=> $item->att('#Headers'),
+	data	=> $item->att('#Result'),
+    );
+
+    $item->insert_new_elt( div => { align => 'center' })
+	 ->insert_new_elt( img => { src => $self->Object->encode_src($png) }) if $png;
+=comment
+
+    my $result = $args->{table}->get_result;
+    my $fields = [ keys %{$args2->{descr}} ];
+
+    # outrageous transform
+    my $val = [
+        map { my $fld = $_; [ map {$_->{$fld} || 0} @$result ] }
+            ($args2->{xaxfld}, grep { $_ ne $args2->{xaxfld} } @{$fields})
+    ];
+
+    my $g = RG::Graph->new($args2->{type}, $args2);
+    my $gd = $g->plot($val, $fields); # or return; # die $!;
+
+=cut
 }
 
 sub part {
     my ($self, $part) = @_;
-    my $type = $part->tag;
+    my $type = $part->att('#Tag') || $part->tag;
 
     my $part_id = $self->NextPart;
     $self->$type($part, $part_id);
@@ -189,7 +229,7 @@ sub part {
 
 sub search {
     my $self = shift;
-    $_->set_att(rows => 2);
+    $_->set_att(rows => 2) unless $_->tag eq 'graph';
     $_->set_att('#Clauses' => []);
     $self->NEXT::search(@_);
 }

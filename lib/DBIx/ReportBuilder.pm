@@ -1,8 +1,8 @@
 # $File: //member/autrijus/DBIx-ReportBuilder/lib/DBIx/ReportBuilder.pm $ $Author: autrijus $
-# $Revision: #19 $ $Change: 8048 $ $DateTime: 2003/09/11 00:35:39 $
+# $Revision: #24 $ $Change: 8064 $ $DateTime: 2003/09/12 01:11:07 $
 
 package DBIx::ReportBuilder;
-$DBIx::ReportBuilder::VERSION = '0.00_05';
+$DBIx::ReportBuilder::VERSION = '0.00_06';
 
 use strict;
 no warnings 'redefine';
@@ -16,8 +16,8 @@ DBIx::ReportBuilder - Interactive SQL report generator
 
 =head1 VERSION
 
-This document describes version 0.00_05 of DBIx::ReportBuilder, released
-September 11, 2003.
+This document describes version 0.00_06 of DBIx::ReportBuilder, released
+September 12, 2003.
 
 =head1 SYNOPSIS
 
@@ -74,7 +74,7 @@ use constant Callbacks	=> qw( loc describe_report render_report );
 use constant BaseClass	=> __PACKAGE__;
 
 our $AUTOLOAD;
-our @EXPORT_OK = qw( Sections Parts Clauses BaseClass Atts Att ucase lcase );
+our @EXPORT_OK = qw( Sections Parts Clauses BaseClass Atts Att ucase lcase encode_src );
 our %EXPORT_TAGS = ( all => \@EXPORT_OK );
 
 sub ucase {
@@ -127,7 +127,7 @@ sub new {
     );
     $self->SetLoc( $args{Loc} || sub { $_[0] } );
     $self->SetDescribeReport( $args{DescribeReport} || sub { "#$_[0]" } );
-    $self->SetRenderReport( $args{RenderReport} || sub { "[ $_[0] ]" } );
+    $self->SetRenderReport( $args{RenderReport} || sub { "<div>#$_[0]</div>" } );
     $self->SetHandle( $args{Handle} || $self->NewHandle( %args ) );
     $self->SetName( $args{Name} || $self->loc('(new)') );
     $self->Parse( $args{Content} );
@@ -176,6 +176,11 @@ sub NewHandle {
     return $obj;
 }
 
+sub NewGraph {
+    my $self = shift;
+    return eval { $self->spawn(Graph => @_) };
+}
+
 sub RenderObj {
     my $self = shift;
     my $type = shift || 'HTML';
@@ -218,6 +223,24 @@ sub ClauseObj { +shift->_obj(Clause => @_) }
 sub NextPart   { 'Part' . ++$_[0]{next_part} }
 sub NextClause { 'Clause' . ++$_[0]{next_clause} }
 sub ResetCounts { $_[0]{next_part} = $_[0]{next_clause} = 0 }
+
+sub SectionId {
+    my $self = shift;
+    return $self->PartObj->parent->pos;
+}
+
+sub SetSectionId {
+    my $self = shift;
+    my $id   = shift;
+
+    $self->SetPartId(
+	$self->root->first_child('body')
+		    ->first_child((Sections)[$id-1])
+		    ->first_child->id
+    ) unless ($self->SectionId == $id);
+
+    return $id;
+}
 
 sub ClauseId {
     my $self = shift;
@@ -320,6 +343,16 @@ sub spawn {
     require "$pkg.pm";
     return $class->new(@_);
 }
+
+sub encode_src {
+    return join(
+	"\\x",
+	"javascript:'",
+	($] >= 5.008)
+	    ? unpack("(H2)*", $_[1])
+	    : map unpack("H2", $_), split(//, $_[1])
+    ) . "'";
+};
 
 sub DESTROY {}
 

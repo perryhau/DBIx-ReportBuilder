@@ -1,5 +1,5 @@
 # $File: //member/autrijus/DBIx-ReportBuilder/lib/DBIx/ReportBuilder/Part.pm $ $Author: autrijus $
-# $Revision: #9 $ $Change: 8047 $ $DateTime: 2003/09/11 00:35:14 $
+# $Revision: #10 $ $Change: 8059 $ $DateTime: 2003/09/11 23:13:12 $
 
 package DBIx::ReportBuilder::Part;
 
@@ -117,11 +117,7 @@ sub Change {
 	    $self->_ConvertToPNG( \$stream ) unless $type eq 'PNG';
 
 	    $self->set_att( width => $x, height => $y );
-	    $self->set_att(
-		$key => "javascript:'\\x" .
-			join("\\x", unpack("(H2)*", $stream)) .
-			"'"
-	    );
+	    $self->set_att( $key => $self->encode_src($stream) );
 	}
 	else {
 	    $self->set_att( $key => $value );
