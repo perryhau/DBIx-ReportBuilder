@@ -1,4 +1,62 @@
 ____________________________________________________________________________
+[  7984] By: autrijus                              on 2003/09/08  17:11:41
+        Log: * This be 0.00_03.
+	   ! MANIFEST Makefile.PL lib/DBIx/ReportBuilder.pm
+	   ! lib/DBIx/ReportBuilder/Render.pm t/1-basic.t
+____________________________________________________________________________
+[  7983] By: autrijus                              on 2003/09/08  17:03:47
+        Log: * finish filling the extremely tiresome attribute list.
+	   ! lib/DBIx/ReportBuilder/Attribute.pm
+	   ! lib/DBIx/ReportBuilder/Part/Graph.pm
+____________________________________________________________________________
+[  7982] By: autrijus                              on 2003/09/08  16:37:54
+        Log: <* Atts and Values now has cryptocontext.
+	   ! lib/DBIx/ReportBuilder.pm lib/DBIx/ReportBuilder/Attribute.pm
+	   ! t/1-basic.t
+____________________________________________________________________________
+[  7981] By: autrijus                              on 2003/09/08  16:27:28
+        Log: * finished an "interesting" attribute metadata system.
+	   + lib/DBIx/ReportBuilder/Attribute.pm
+	   ! lib/DBIx/ReportBuilder.pm lib/DBIx/ReportBuilder/Part.pm
+	   ! lib/DBIx/ReportBuilder/Part/Graph.pm
+	   ! lib/DBIx/ReportBuilder/Render.pm t/1-basic.t
+____________________________________________________________________________
+[  7980] By: autrijus                              on 2003/09/08  15:37:26
+        Log: * streamlined the Attr interface.
+	   ! lib/DBIx/ReportBuilder.pm lib/DBIx/ReportBuilder/Graph.pm
+	   ! lib/DBIx/ReportBuilder/Part.pm
+	   ! lib/DBIx/ReportBuilder/Part/Graph.pm
+	   ! lib/DBIx/ReportBuilder/Part/P.pm
+	   ! lib/DBIx/ReportBuilder/Part/Table.pm
+	   ! lib/DBIx/ReportBuilder/Render.pm
+	   ! lib/DBIx/ReportBuilder/Render/Edit.pm t/1-basic.t
+____________________________________________________________________________
+[  7979] By: autrijus                              on 2003/09/08  14:56:36
+        Log: * seriously clean up clkao's graph code and merge it in.
+	   + lib/DBIx/ReportBuilder/Graph.pm
+____________________________________________________________________________
+[  7978] By: autrijus                              on 2003/09/08  14:03:49
+        Log: * finished join, limit, orderby semantic.
+	   ! lib/DBIx/ReportBuilder.pm lib/DBIx/ReportBuilder/Clause.pm
+	   ! lib/DBIx/ReportBuilder/Part.pm
+	   ! lib/DBIx/ReportBuilder/Render.pm t/1-basic.t
+____________________________________________________________________________
+[  7977] By: autrijus                              on 2003/09/08  12:37:24
+        Log: * graph can now be inserted by subclassing it to table.
+             * cells now takes "formula" for safe, perl-based eval.
+             ($_ means the field, $otherfieldname refers to other)
+	   ! lib/DBIx/ReportBuilder.pm lib/DBIx/ReportBuilder/Part/Graph.pm
+	   ! lib/DBIx/ReportBuilder/Render.pm
+	   ! lib/DBIx/ReportBuilder/Render/Edit.pm t/1-basic.t
+____________________________________________________________________________
+[  7974] By: autrijus                              on 2003/09/08  07:27:58
+        Log: * plan on reportbuilder tests
+	   ! t/1-basic.t
+____________________________________________________________________________
+[  7973] By: autrijus                              on 2003/09/08  07:21:22
+        Log: * add subtitles to tests.
+	   ! t/1-basic.t
+____________________________________________________________________________
 [  7967] By: autrijus                              on 2003/09/08  00:15:34
         Log: * This be 0.00_02.
              * mention RTx::Report.

@@ -1,5 +1,5 @@
 # $File: //member/autrijus/DBIx-ReportBuilder/lib/DBIx/ReportBuilder/Clause.pm $ $Author: autrijus $
-# $Revision: #2 $ $Change: 7954 $ $DateTime: 2003/09/07 22:38:40 $
+# $Revision: #3 $ $Change: 7978 $ $DateTime: 2003/09/08 14:03:49 $
 
 package DBIx::ReportBuilder::Clause;
 
@@ -15,9 +15,9 @@ sub Insert {
 
     # We don't have any siblings... paste into the collection object
     my $part = $self->new($tag, %args);
-    $part->paste($args{Object}->PartObj->first_child("${tag}s"));
+    $part->paste(last_child => $args{Object}->PartObj->first_child("${tag}s"));
     $part->Change(%args);
-    return 1;
+    return $part;
 }
 
 sub Remove {

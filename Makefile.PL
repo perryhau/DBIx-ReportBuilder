@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 # $File: //member/autrijus/DBIx-ReportBuilder/Makefile.PL $ $Author: autrijus $
-# $Revision: #3 $ $Change: 7967 $ $DateTime: 2003/09/08 00:15:34 $
+# $Revision: #4 $ $Change: 7984 $ $DateTime: 2003/09/08 17:11:41 $
 
 use 5.006;
 use inc::Module::Install;
@@ -26,6 +26,8 @@ WriteMakefile (
     PREREQ_PM       => {
         'DBIx::SearchBuilder'	=> '0.90',
 	'XML::Twig'		=> '3.00',
+        'GD::Graph3d'           => '0.61',
+	'Chart::Math::Axis'     => '0.1',
     },
 );
 

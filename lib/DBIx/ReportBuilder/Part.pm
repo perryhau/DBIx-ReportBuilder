@@ -1,5 +1,5 @@
 # $File: //member/autrijus/DBIx-ReportBuilder/lib/DBIx/ReportBuilder/Part.pm $ $Author: autrijus $
-# $Revision: #2 $ $Change: 7954 $ $DateTime: 2003/09/07 22:38:40 $
+# $Revision: #5 $ $Change: 7981 $ $DateTime: 2003/09/08 16:27:28 $
 
 package DBIx::ReportBuilder::Part;
 
@@ -46,6 +46,13 @@ sub new {
     return $self;
 }
 
+sub set_tag {
+    my ($self, $tag) = @_;
+    $self->SUPER::set_tag($tag);
+    bless $self, $self->ElementClass . "::\u$tag";
+    return $self;
+}
+
 sub init {}
 
 sub Insert {
@@ -54,7 +61,7 @@ sub Insert {
     my $part = $self->new($tag, %args);
     $part->paste(after => $self);
     $part->Change(%args);
-    return 1;
+    return $part;
 }
 
 sub Up {
@@ -81,7 +88,7 @@ sub Remove {
 
 sub Change {
     my ($self, %args) = @_;
-    foreach my $key ( $self->Attrs($self->tag) ) {
+    foreach my $key ( $self->Atts ) {
 	defined $args{$key} or next;
 	my $value = $args{$key};
 	# $value = 1 if $value eq 'on';

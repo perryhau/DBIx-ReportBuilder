@@ -1,5 +1,5 @@
 # $File: //member/autrijus/DBIx-ReportBuilder/lib/DBIx/ReportBuilder/Render/Edit.pm $ $Author: autrijus $
-# $Revision: #1 $ $Change: 7952 $ $DateTime: 2003/09/07 20:09:05 $
+# $Revision: #3 $ $Change: 7980 $ $DateTime: 2003/09/08 15:37:26 $
 
 package DBIx::ReportBuilder::Render::Edit;
 use base 'DBIx::ReportBuilder::Render';
@@ -22,8 +22,6 @@ sub new {
 	    postamble   => \&section,
 	    part	=> \&part,  # called indirectly
 
-	    graph	=> \&graph,
-	    table	=> \&table,
 	    p		=> \&p,
 	    include	=> \&include,
 	    img		=> \&img,
@@ -33,6 +31,7 @@ sub new {
 	},
 	start_tag_handlers => {
 	    content	=> \&enterContent,
+	    table	=> \&search,
 	    %{$args{start_tag_handlers}||{}},
 	},
 	end_tag_handlers => {
@@ -132,10 +131,10 @@ sub part {
     );
 }
 
-sub graph {
-}
-
-sub table {
+sub search {
+    my $self = shift;
+    $_->set_att(rows => 2);
+    $self->NEXT::search(@_);
 }
 
 sub p {

@@ -1,8 +1,8 @@
 # $File: //member/autrijus/DBIx-ReportBuilder/lib/DBIx/ReportBuilder.pm $ $Author: autrijus $
-# $Revision: #6 $ $Change: 7967 $ $DateTime: 2003/09/08 00:15:34 $
+# $Revision: #12 $ $Change: 7984 $ $DateTime: 2003/09/08 17:11:41 $
 
 package DBIx::ReportBuilder;
-$DBIx::ReportBuilder::VERSION = '0.00_02';
+$DBIx::ReportBuilder::VERSION = '0.00_03';
 
 use strict;
 no warnings 'redefine';
@@ -16,8 +16,8 @@ DBIx::ReportBuilder - Interactive SQL report generator
 
 =head1 VERSION
 
-This document describes version 0.00_02 of DBIx::ReportBuilder, released
-September 9, 2003.
+This document describes version 0.00_03 of DBIx::ReportBuilder, released
+September 10, 2003.
 
 =head1 SYNOPSIS
 
@@ -29,21 +29,18 @@ September 9, 2003.
 	Password    => 'rt_pass',
 	Database    => 'rt3',
     );
-    $obj->PartInsert(
-	tag => 'table', table => 'users', rows => 10, text => 'User List'
-    );
-    $obj->ClauseInsert(
-	tag => 'limit', field => 'id', operator => '<', value => 2000
-    );
-    $obj->ClauseInsert(
-	tag => 'cell', field => 'id', text => 'Id'
-    );
-    $obj->ClauseInsert(
-	tag => 'cell', field => 'name', text => 'Name'
-    );
-    $obj->ClauseUp;	# move up; switch Name and Id
-    $obj->ClauseDown;	# move down; switch Name and Id back
-    $obj->ClauseRemove;	# delete the current clause
+
+    $obj->PartInsertP( text => "My Test Report" );
+    $obj->PartInsertTable( table => 'users', text => 'User List' );
+
+    $obj->ClauseInsertLimit( field => 'id', operator => '<', value => 20 );
+    $obj->ClauseInsertCell( field => 'id', text => 'Id' );
+    $obj->ClauseInsertCell( field => 'name', text => 'Name' );
+
+    $obj->ClauseUp;		# move up; switch Name and Id
+    $obj->ClauseDown;		# move down; switch Name and Id back
+    $obj->ClauseRemove;		# delete the current clause
+
     print $obj->RenderHTML;	# prints a HTML rendered document
     print $obj->RenderEdit;	# prints an interactive Web UI
     print $obj->RenderPDF;	# prints PDF (not yet)
@@ -62,6 +59,9 @@ This is B<PRE-ALPHA> code.  Until the actual release of the B<RTx::Report>,
 using this module for anything (except for learning purporses) is strongly
 discouraged.
 
+For more details on how to use this module, see the F<t/1-basic.t> file in
+the source distribution.
+
 =head1 METHODS
 
 =cut
@@ -71,22 +71,9 @@ use constant Parts	=> qw( p img table graph include );
 use constant Clauses	=> qw( join limit orderby cell );
 use constant Parameters	=> qw( loc handle trigger handle clause_id part_id );
 use constant BaseClass	=> __PACKAGE__;
-use constant PartAttrs	=> {
-    p           => [ qw( align font size border ) ],
-    img         => [ qw( alt width height ) ],
-    include     => [ qw( ) ],
-    table       => [ qw( table width height ) ],
-    graph       => [ qw( table type style legend threed threed_shading cumulate
-			  show_values values_vertical rotate_chart title ) ],
-
-    join	=> [ qw( alias alias1 alias2 field1 field2 table2 type ) ],
-    limit	=> [ qw( alias field operator value table entryaggregator ) ],
-    orderby	=> [ qw( alias field order ) ],
-    cell	=> [ qw( field align font size ) ],
-};
 
 our $AUTOLOAD;
-our @EXPORT_OK = qw( Sections Parts Clauses BaseClass Attrs );
+our @EXPORT_OK = qw( Sections Parts Clauses BaseClass Atts Att );
 our %EXPORT_TAGS = ( all => \@EXPORT_OK );
 
 BEGIN { foreach my $item (Parameters) {
@@ -188,7 +175,14 @@ sub Recount {
 	map { $root->descendants($_) } $self->Parts;
     $_->set_id($self->NextClause) for sort { $a->cmp($b) }
 	map { $root->descendants($_) } $self->Clauses;
+
     $self->ResetCounts;
+
+    if (my $obj = $self->ClauseObj) {
+	# if clauseid no longer belong into part, adjust it to 0
+	$self->SetClauseId(0) if $obj->parent
+	    and $obj->parent->parent->id ne $self->PartObj->id;
+    }
 
     return $self->PartId unless wantarray;
     return ($self->PartId, $self->ClauseId);
@@ -212,9 +206,19 @@ sub SetPartId {
     $self->{part_id} = $id;
 }
 
-sub Attrs {
-    my ($self, $part) = @_;
-    return @{PartAttrs->{lc($part)}};
+sub Atts {
+    my ($self, $tag) = @_;
+    $tag ||= $self->tag if $self->can('tag');
+    return BaseClass->spawn('Attribute', Tag => $tag)->Attributes;
+}
+
+sub Att {
+    my ($self, $att, $tag) = @_;
+    $tag ||= $self->tag if $self->can('tag');
+    return BaseClass->spawn(
+	'Attribute',
+	Object => $self, Att => $att, Tag => $tag,
+    );
 }
 
 sub _do {
@@ -229,9 +233,15 @@ sub _do {
     my $obj = $self->$getObj($self->$getId) || $self->spawn($class);
     $obj->can($Op) or return;
 
-    my $modifier = $obj->$Op(@_, Object => $self);
-    $self->Recount if defined($modifier);
-    return $self->$setId($self->$getId + ($modifier || 0));
+    my $rv = $obj->$Op(@_, Object => $self);
+    $self->Recount if defined($rv);
+    if (ref($rv)) {
+	$rv = substr($rv->id, length($class));
+    }
+    else {
+	$rv = $self->$getId + ($rv || 0);
+    }
+    return $self->$setId( $rv );
 }
 
 sub _obj {
@@ -259,6 +269,8 @@ sub loc {
 
 sub DESTROY {}
 
+# PartInsertTable
+
 sub AUTOLOAD {
     no warnings 'uninitialized';
 
@@ -266,8 +278,10 @@ sub AUTOLOAD {
     $AUTOLOAD =~ /\b(Part|Clause|Render)(\w+?)(Obj)?$/
 	or die "Undefined subroutine $AUTOLOAD";
 
-    my $method = "$1$3";
-    $self->$method($2, @_);
+    my $method = $1 . $3;
+    my $op     = $2;
+    my $tag    = $2 if $op =~ s/^([A-Z][a-z]+)([A-Z][a-z]*)$/$1/;
+    $self->$method($op => ($tag ? (tag => lc($tag)) : ()), @_);
 }
 
 1;

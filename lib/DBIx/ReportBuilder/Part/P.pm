@@ -1,5 +1,5 @@
 # $File: //member/autrijus/DBIx-ReportBuilder/lib/DBIx/ReportBuilder/Part/P.pm $ $Author: autrijus $
-# $Revision: #2 $ $Change: 7954 $ $DateTime: 2003/09/07 22:38:40 $
+# $Revision: #3 $ $Change: 7980 $ $DateTime: 2003/09/08 15:37:26 $
 
 package DBIx::ReportBuilder::Part::P;
 use base 'DBIx::ReportBuilder::Part';
@@ -16,8 +16,19 @@ sub Insert {
 
 sub Change {
     my ($self, %args) = @_;
-    $self->set_text( $args{text} ) if exists $args{text};
+    $self->set_text( delete $args{text} ) if exists $args{text};
     $self->SUPER::Change( %args );
 }
+
+use constant Inputs => (
+    align	=> {
+	type		=> 'radio',
+	choices		=> [qw/left center right/],
+	default		=> 'left',
+    },
+    font	=> {
+    },
+    align => [ qw( align font size border ) ],
+);
 
 1;

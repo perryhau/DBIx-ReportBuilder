@@ -1,19 +1,13 @@
 # $File: //member/autrijus/DBIx-ReportBuilder/lib/DBIx/ReportBuilder/Part/Table.pm $ $Author: autrijus $
-# $Revision: #1 $ $Change: 7953 $ $DateTime: 2003/09/07 22:05:43 $
+# $Revision: #2 $ $Change: 7980 $ $DateTime: 2003/09/08 15:37:26 $
 
 package DBIx::ReportBuilder::Part::Table;
 use base 'DBIx::ReportBuilder::Part';
 
 sub init {
     my $self = shift;
-    $self->insert_new_elt(last_child => $_) for 'caption', map "${_}s", $self->Clauses;
+    $self->insert_new_elt(last_child => $_) for map "${_}s", $self->Clauses;
     return $self;
-}
-
-sub Change {
-    my ($self, %args) = @_;
-    $self->first_child('caption')->set_text( $args{text} ) if exists $args{text};
-    $self->SUPER::Change( %args );
 }
 
 1;
