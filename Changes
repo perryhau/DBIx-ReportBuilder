@@ -1,4 +1,51 @@
 ____________________________________________________________________________
+[  8192] By: autrijus                              on 2003/09/20  15:30:16
+        Log: * This be 0.00_09.
+             * properly skips pdf generation on machines without OOo.
+             * avoid collision on Win32 when making tempfiles.
+	   ! lib/DBIx/ReportBuilder.pm lib/DBIx/ReportBuilder/Render/PDF.pm
+	   ! t/1-basic.t
+____________________________________________________________________________
+[  8168] By: autrijus                              on 2003/09/18  04:46:31
+        Log: * pdf rendering works!
+	   ! lib/DBIx/ReportBuilder/Render/PDF.pm t/1-basic.t
+____________________________________________________________________________
+[  8167] By: autrijus                              on 2003/09/18  04:27:06
+        Log: * first cut at pdf exporting.
+	   ! lib/DBIx/ReportBuilder/Render/PDF.pm t/1-basic.t
+____________________________________________________________________________
+[  8166] By: autrijus                              on 2003/09/18  02:09:44
+        Log: * finally getting ooo pass.
+	   + sample.html
+____________________________________________________________________________
+[  8154] By: autrijus                              on 2003/09/17  02:20:55
+        Log: * switch from javascript:'' to data: for images.
+	   ! lib/DBIx/ReportBuilder.pm t/1-basic.t
+____________________________________________________________________________
+[  8117] By: autrijus                              on 2003/09/13  23:42:17
+        Log: * this be 0.00_08.
+	   ! lib/DBIx/ReportBuilder/Attribute.pm
+____________________________________________________________________________
+[  8116] By: autrijus                              on 2003/09/13  23:42:11
+        Log: * gah. wrong precedency causing field names being broken.
+	   ! lib/DBIx/ReportBuilder.pm
+____________________________________________________________________________
+[  8113] By: autrijus                              on 2003/09/13  23:33:31
+        Log: * oops, fields selection was unconditionally hiding itself.
+	   ! lib/DBIx/ReportBuilder/Attribute.pm
+____________________________________________________________________________
+[  8112] By: autrijus                              on 2003/09/13  23:25:14
+        Log: * revert to the old file temp way because win32 doesn't like us.
+	   ! lib/DBIx/ReportBuilder/Part.pm
+____________________________________________________________________________
+[  8111] By: autrijus                              on 2003/09/13  22:59:30
+        Log: * try to make a better tmpfile on win32.
+	   ! lib/DBIx/ReportBuilder/Part.pm
+____________________________________________________________________________
+[  8091] By: autrijus                              on 2003/09/13  00:25:50
+        Log: * gotta have a plan.
+	   ! t/1-basic.t
+____________________________________________________________________________
 [  8090] By: autrijus                              on 2003/09/13  00:24:46
         Log: * This be 0.00_07
 	   ! MANIFEST

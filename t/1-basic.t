@@ -1,7 +1,7 @@
 # $File: //member/autrijus/DBIx-ReportBuilder/t/1-basic.t $ $Author: autrijus $
-# $Revision: #33 $ $Change: 8091 $ $DateTime: 2003/09/13 00:25:50 $
+# $Revision: #38 $ $Change: 8192 $ $DateTime: 2003/09/20 15:30:16 $
 
-use Test::More tests => 172;
+use Test::More tests => 173;
 use FindBin;
 
 use strict;
@@ -17,11 +17,12 @@ use_ok('DBIx::ReportBuilder');
 my $obj = eval {
     local $SIG{__WARN__} = sub {};
     DBIx::ReportBuilder->new(
-	Driver	    => 'mysql',
 	Host	    => 'localhost',
 	Port	    => (($^O eq 'MSWin32') ? 8285 : 3306),
 	User	    => 'root',
+	Driver	    => 'mysql',
 	Database    => 'rt3',
+	Name	    => 'SomeName',
     )
 } || DBIx::ReportBuilder->new;
 
@@ -127,12 +128,13 @@ like($p->first_child('font')->sprint,
 # }}}
 # Navigation - Variables {{{
 
-is($obj->Var('ReportName'), '(new)', "Variable 'ReportName' has value");
+is($obj->Var('ReportName'), 'SomeName', "Variable 'ReportName' has value");
 is($obj->SetName('Foo'), 'Foo', "Set ReportName");
 is($obj->Var('ReportName'), 'Foo', "Variable 'ReportName' changed value");
 is($obj->VarObj('ReportName')->Var, 'report_name', "->Var is lcased");
 is($obj->VarObj('ReportName')->Name, 'ReportName', "->Name is ucased");
-is($obj->SetVarDescription(ReportName => 'Bar'), undef, "Can't set description for ReportName");
+is($obj->SetVarDescription(ReportName => 'Bar'),
+    undef, "Can't set description for ReportName");
 
 is($obj->Var('Page'), 1, "Variable 'Page' has value");
 is($obj->Var('PageCount'), 1, "Variable 'PageCount' has value");
@@ -213,14 +215,20 @@ isa_ok($obj->PartObj, 'DBIx::ReportBuilder::Part::Img');
 
 open my $fh, "$FindBin::Bin/test.png" or die $!;
 is($obj->PartChange(src => $fh), 4, "Upload an image");
+
 like($obj->PartObj->att('src'),
-    qr(^javascript:'\\x89\\x50\\x4e\\x47\\x0d\\x0a), 'Image parsed');
+    qr(^data:image/png;base64,iVBORw0KGgoAAAA), 'Image parsed');
 close $fh;
 
 $obj->SetPartId(3);
 is($obj->PartRemove, 3, 'Remove p returns PartId to 3');
 isa_ok($obj->PartObj, 'DBIx::ReportBuilder::Part::Img');
 is($obj->SetPartId(0), 3, 'PartId autofocus to 3 even for non-P elements');
+
+SKIP: {
+    my $pdf = eval { $obj->RenderPDF } or skip("Can't find OOo", 1);
+    like($pdf, qr(^%PDF), 'RenderPDF succeeded');
+}
 
 is($obj->PartRemove, 3, 'Remove img retains PartId in 3');
 
@@ -318,7 +326,7 @@ is($table->first_child('caption')->text,
 is($table->first_child('thead')->text,
     'DiscordIdTemplate100xId', 'Correctly renders thead');
 like($table->first_child('tbody')->text,
-    qr(^1+0+Discord2+0+Discord\Q.........\E$), 'Correctly renders tbody');
+    qr(^(?:1+0+Discord2+0+Discord)?\Q.........\E$), 'Correctly renders tbody');
 ok($table->first_child('tbody')->children <= 3,
     'Edit should only preserve 2 rows, plus ...');
 is($obj->ClauseObj(1)->text, 20, 'Text of limit is still 20');
@@ -366,6 +374,7 @@ is($obj->ClauseInsertOrderby( field => 'description', table => 'scrips' ),
 isa_ok($obj->PartObj->set_tag('table'),
     'DBIx::ReportBuilder::Part::Table', 'Graph->set_tag("table")');
 is($obj->RenderEdit, $obj->RenderEdit, 'RenderEdit consistency');
+
 my ($graph_as_table) = $obj->RenderEditObj->root->get_xpath(
     '/div/table/tr[3]/td[2]/table/tr[2]/td/table'
 );
@@ -373,7 +382,7 @@ isa_ok($graph_as_table, 'XML::Twig::Elt', 'GraphAsTable from get_xpath');
 is($graph_as_table->first_child('thead')->text,
     'IdName', 'Correctly renders thead');
 like($graph_as_table->first_child('tbody')->text,
-    qr(^\d+New Pending Approval\d+Approval Passed\Q......\E), 'Correctly renders tbody');
+    qr(^(?:\d+New Pending Approval\d+Approval Passed)?\Q......\E), 'Correctly renders tbody');
 
 isa_ok($obj->PartObj->set_tag('graph'),
     'DBIx::ReportBuilder::Part::Graph', 'Table->set_tag("graph")');

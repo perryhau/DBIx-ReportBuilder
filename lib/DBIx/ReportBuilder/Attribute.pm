@@ -1,5 +1,5 @@
 # $File: //member/autrijus/DBIx-ReportBuilder/lib/DBIx/ReportBuilder/Attribute.pm $ $Author: autrijus $
-# $Revision: #19 $ $Change: 8082 $ $DateTime: 2003/09/12 23:19:14 $
+# $Revision: #21 $ $Change: 8117 $ $DateTime: 2003/09/13 23:42:17 $
 
 package DBIx::ReportBuilder::Attribute;
 use strict;
@@ -87,7 +87,10 @@ use constant Data => {
     field		=> {
 	type		=> 'select',
 	values		=> \&_fields,
-	applicable	=> sub { $_[0]->Object->att('table') },
+	applicable	=> sub {
+	    $_[0]->Object->att('table') or
+	    $_[0]->Object->parent->parent->att('table')
+	},
     },
     field2		=> {
 	type		=> 'select',
@@ -249,7 +252,7 @@ sub _fields {
     my $self = shift;
     my $att  = shift || 'table';
     my $obj  = $self->Object;
-    my $table = $obj->att($att) or $obj->parent->parent->att($att) or return;
+    my $table = $obj->att($att) || $obj->parent->parent->att($att) or return;
     my $dbh = $self->ReportBuilderObj->Handle->dbh;
     my $driver = $dbh->{Driver}{Name};
 
@@ -267,7 +270,7 @@ sub _fields {
 	return map {
 	    my ($type) = map lc, ($_->[1] =~ /^(\w+)/);
 	    lc($_->[0]);
-	} @{$dbh->selectall_arrayref("DESCRIBE $table;")};
+	} @{$dbh->selectall_arrayref("DESCRIBE $table;") || []};
     }
 }
 sub _fields2 {

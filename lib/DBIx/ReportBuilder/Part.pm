@@ -1,5 +1,5 @@
 # $File: //member/autrijus/DBIx-ReportBuilder/lib/DBIx/ReportBuilder/Part.pm $ $Author: autrijus $
-# $Revision: #11 $ $Change: 8075 $ $DateTime: 2003/09/12 17:31:20 $
+# $Revision: #13 $ $Change: 8112 $ $DateTime: 2003/09/13 23:25:14 $
 
 package DBIx::ReportBuilder::Part;
 
@@ -135,9 +135,11 @@ sub Id {
 sub _ConvertToPNG {
     my ($self, $ref) = @_;
 
+    require File::Spec;
     require File::Temp;
 
-    my ($tmpfh, $tmpfile) = File::Temp::tempfile() or die $!;
+    my ($tmpfh, $tmpfile) = File::Temp::tempfile()
+	or die "Please make " . File::Spec->tmpdir . " writable to me!";
     binmode($tmpfh);
     print $tmpfh $$ref;
     close $tmpfh;

@@ -1,8 +1,8 @@
 # $File: //member/autrijus/DBIx-ReportBuilder/lib/DBIx/ReportBuilder.pm $ $Author: autrijus $
-# $Revision: #28 $ $Change: 8088 $ $DateTime: 2003/09/13 00:24:02 $
+# $Revision: #31 $ $Change: 8192 $ $DateTime: 2003/09/20 15:30:16 $
 
 package DBIx::ReportBuilder;
-$DBIx::ReportBuilder::VERSION = '0.00_07';
+$DBIx::ReportBuilder::VERSION = '0.00_09';
 
 use strict;
 no warnings 'redefine';
@@ -16,8 +16,8 @@ DBIx::ReportBuilder - Interactive SQL report generator
 
 =head1 VERSION
 
-This document describes version 0.00_07 of DBIx::ReportBuilder, released
-September 13, 2003.
+This document describes version 0.00_09 of DBIx::ReportBuilder, released
+September 20, 2003.
 
 =head1 SYNOPSIS
 
@@ -361,13 +361,8 @@ sub spawn {
 }
 
 sub encode_src {
-    return join(
-	"\\x",
-	"javascript:'",
-	($] >= 5.008)
-	    ? unpack("(H2)*", $_[1])
-	    : map unpack("H2", $_), split(//, $_[1])
-    ) . "'";
+    require MIME::Base64;
+    return "data:image/png;base64,".MIME::Base64::encode_base64($_[1]);
 };
 
 sub DESTROY {}
