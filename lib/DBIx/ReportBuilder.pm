@@ -1,8 +1,8 @@
 # $File: //member/autrijus/DBIx-ReportBuilder/lib/DBIx/ReportBuilder.pm $ $Author: autrijus $
-# $Revision: #15 $ $Change: 7998 $ $DateTime: 2003/09/09 00:49:38 $
+# $Revision: #19 $ $Change: 8048 $ $DateTime: 2003/09/11 00:35:39 $
 
 package DBIx::ReportBuilder;
-$DBIx::ReportBuilder::VERSION = '0.00_04';
+$DBIx::ReportBuilder::VERSION = '0.00_05';
 
 use strict;
 no warnings 'redefine';
@@ -16,8 +16,8 @@ DBIx::ReportBuilder - Interactive SQL report generator
 
 =head1 VERSION
 
-This document describes version 0.00_04 of DBIx::ReportBuilder, released
-September 9, 2003.
+This document describes version 0.00_05 of DBIx::ReportBuilder, released
+September 11, 2003.
 
 =head1 SYNOPSIS
 
@@ -69,21 +69,40 @@ the source distribution.
 use constant Sections	=> qw( preamble header content footer postamble );
 use constant Parts	=> qw( p img table graph include );
 use constant Clauses	=> qw( join limit orderby cell );
-use constant Vars	=> qw( page pagecount date time reportname );
-use constant Parameters	=> qw( loc handle trigger handle clause_id part_id );
+use constant Parameters	=> qw( name handle trigger clause_id part_id );
+use constant Callbacks	=> qw( loc describe_report render_report );
 use constant BaseClass	=> __PACKAGE__;
 
 our $AUTOLOAD;
-our @EXPORT_OK = qw( Sections Parts Clauses BaseClass Atts Att );
+our @EXPORT_OK = qw( Sections Parts Clauses BaseClass Atts Att ucase lcase );
 our %EXPORT_TAGS = ( all => \@EXPORT_OK );
 
-BEGIN { foreach my $item (Parameters) {
+sub ucase {
+    my $self = shift;
+    return join('', map ucfirst, split(/_/, +shift));
+}
+
+sub lcase {
+    my $self = shift;
+    my $text = lcfirst(+shift);
+    $text =~ s/([A-Z])/_\l$1/g;
+    return $text;
+}
+
+BEGIN {
     no strict 'refs';
-    my $accessor = ucfirst($item);
-    $accessor =~ s/_(\w)/\u$1/g;
-    *{"$accessor"} = sub { $_[0]->{$item} };
-    *{"Set$accessor"} = sub { $_[0]->{$item} = $_[1] };
-} }
+    foreach my $item (Parameters, Callbacks) {
+	my $accessor = BaseClass->ucase($item);
+	*{"$accessor"} = sub { $_[0]->{$item} };
+	*{"Set$accessor"} = sub { $_[0]->{$item} = $_[1] };
+    }
+    foreach my $item (Callbacks) {
+	*{"$item"} = sub {
+	    my $code = +shift->{$item} or return;
+	    return $code->(@_);
+	};
+    }
+}
 
 =head2 new(%args)
 
@@ -106,8 +125,11 @@ sub new {
 	},
 	pretty_print	=> 'indented_c',
     );
-    $self->SetLoc( $args{Loc} );
+    $self->SetLoc( $args{Loc} || sub { $_[0] } );
+    $self->SetDescribeReport( $args{DescribeReport} || sub { "#$_[0]" } );
+    $self->SetRenderReport( $args{RenderReport} || sub { "[ $_[0] ]" } );
     $self->SetHandle( $args{Handle} || $self->NewHandle( %args ) );
+    $self->SetName( $args{Name} || $self->loc('(new)') );
     $self->Parse( $args{Content} );
     $self->SetPartId( $args{PartId} || 0);
     $self->SetClauseId( $args{ClauseId} || 0 );
@@ -130,10 +152,14 @@ sub NewContent {
     );
 
     my $root = $obj->root;
-    my $body = $root->insert_new_elt( 'body' );
-    my $head = $root->insert_new_elt( 'head' );
+    my $head = $root->insert_new_elt( last_child => 'head' );
+    $head->insert_new_elt( last_child => 'meta', { name => $_, auto => 1 } )
+	foreach $self->VarObj->Vars;
+
+    my $body = $root->insert_new_elt( last_child => 'body' );
     $body->insert_new_elt( last_child => $_ )->insert_new_elt( 'p' )
-	foreach qw(preamble header content footer postamble);
+	foreach $self->Sections;
+
     $head->set_att(orientation => 'portrait');
     $head->set_att(paper => 'a4paper');
 
@@ -208,7 +234,7 @@ sub ClauseId {
 sub SetPartId {
     my ($self, $id) = @_;
     $id ||= $self->root->first_child('body')
-		 ->first_child('content')->first_child('p')->id;
+		 ->first_child('content')->first_child->id;
     $id =~ s/^Part//;
     $self->{part_id} = $id;
 }
@@ -226,6 +252,33 @@ sub Att {
 	'Attribute',
 	Object => $self, Att => $att, Tag => $tag,
     );
+}
+
+sub VarObj {
+    my $self = shift;
+    my $var  = $self->lcase(+shift);
+    return BaseClass->spawn(
+	'Variable',
+	Object => $self, Var => $var,
+    );
+}
+
+sub Vars {
+    my $self = shift;
+    return map $self->ucase($_), $self->VarObj->Vars;
+}
+
+sub Var		    { +shift->VarObj(+shift)->Value }
+sub RemoveVar	    { +shift->VarObj(+shift)->Remove(@_) } 
+sub SetVar	    { +shift->VarObj(+shift)->SetValue(@_) }
+sub SetVarDefault   { +shift->VarObj(+shift)->SetDefaultValue(@_) }
+
+sub VarInsert {
+    my ($self, $var) = @_;
+    my $obj = $self->ClauseObj || $self->PartObj or return;
+    return unless $obj->Atts->[-1] eq 'text';
+    $obj->insert_new_elt( last_child => 'var', { name => $self->lcase($var) } );
+    return $obj->Id;
 }
 
 sub _do {
@@ -268,12 +321,6 @@ sub spawn {
     return $class->new(@_);
 }
 
-sub loc {
-    my $self = shift;
-    return $self->{loc}->(@_) if $self->{loc};
-    return $_[0];
-}
-
 sub DESTROY {}
 
 # PartInsertTable
@@ -282,12 +329,13 @@ sub AUTOLOAD {
     no warnings 'uninitialized';
 
     my $self = shift;
-    $AUTOLOAD =~ /\b(Part|Clause|Render)(\w+?)(Obj)?$/
+    $AUTOLOAD =~ /\b(VarInsert|Part|Clause|Render)(\w+?)(Obj)?$/
 	or die "Undefined subroutine $AUTOLOAD";
 
     my $method = $1 . $3;
     my $op     = $2;
-    my $tag    = $2 if $op =~ s/^([A-Z][a-z]+)([A-Z][a-z]*)$/$1/;
+    my $tag    = $2 if ($method ne 'VarInsert')
+		    and ($op =~ s/^([A-Z][a-z]+)((?:[A-Z][a-z]*)+)$/$1/);
     $self->$method($op => ($tag ? (tag => lc($tag)) : ()), @_);
 }
 

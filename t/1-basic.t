@@ -1,13 +1,13 @@
 # $File: //member/autrijus/DBIx-ReportBuilder/t/1-basic.t $ $Author: autrijus $
-# $Revision: #17 $ $Change: 7998 $ $DateTime: 2003/09/09 00:49:38 $
+# $Revision: #24 $ $Change: 8047 $ $DateTime: 2003/09/11 00:35:14 $
 
-use Test::More tests => 110;
+use Test::More tests => 152;
 use FindBin;
 
 use strict;
 use lib "$FindBin::Bin/../lib";
 local $SIG{__WARN__} = sub {
-    print $_[0] unless $_[0] =~ m{XML/Twig|DBIx/SearchBuilder}
+    print $_[0] unless $_[0] =~ m{XML/Twig|DBIx\W+SearchBuilder}
 };
 
 # Database - mysql, [ODBC] {{{
@@ -19,6 +19,7 @@ my $obj = eval {
     DBIx::ReportBuilder->new(
 	Driver	    => 'mysql',
 	Host	    => 'localhost',
+	Port	    => (($^O eq 'MSWin32') ? 8285 : 3306),
 	User	    => 'root',
 	Database    => 'rt3',
     )
@@ -75,7 +76,6 @@ is($obj->PartFooBar, undef, 'Invalid op is noop');
 is($obj->ClauseFooBar, undef, 'Invalid op is noop');
 
 # }}}
-# Navigation - Invalid input {{{
 # Navigation - Part - Change text/attributes {{{
 
 is($obj->PartChange( text => 100 ), 3, 'Change does not move PartId');
@@ -97,10 +97,75 @@ my ($p) = $obj->RenderEditObj->root->get_xpath(
 );
 isa_ok($p, 'XML::Twig::Elt', 'P from get_xpath');
 like($p->first_child('font')->sprint,
-    qr{^\s*<font face="12">100</font>\s*$}, 'Correctly renders font');
+    qr(^\s*<font face="12">100</font>\s*$), 'Correctly renders font');
 
 # }}}
-# Navigation - Part - P, Img: Insert, Up, Down, Remove {{{
+# Navigation - Variables {{{
+
+is($obj->Var('ReportName'), '(new)', "Variable 'ReportName' has value");
+is($obj->SetName('Foo'), 'Foo', "Set ReportName");
+is($obj->Var('ReportName'), 'Foo', "Variable 'ReportName' changed value");
+is($obj->VarObj('ReportName')->Var, 'report_name', "->Var is lcased");
+is($obj->VarObj('ReportName')->Name, 'ReportName', "->Name is ucased");
+
+is($obj->Var('Page'), 1, "Variable 'Page' has value");
+is($obj->Var('PageCount'), 1, "Variable 'PageCount' has value");
+like($obj->Var('Date'), qr(^\d{4}-\d{2}-\d{2}$), "Variable 'Date' has value");
+like($obj->Var('Time'), qr(^\d{2}:\d{2}:\d{2}$), "Variable 'Time' has value");
+
+is($obj->PartChange( text => "Hello, cruel \$Date" ), 3, 'Set vars in text');
+
+my ($var) = $obj->PartObj->first_child('var');
+isa_ok($var, 'XML::Twig::Elt', 'VAR from get_xpath');
+is($var->att('name'), 'date');
+
+my ($p_var) = $obj->RenderEditObj->root->get_xpath(
+    '/div/table/tr[3]/td[2]/table/tr/td/p'
+);
+isa_ok($p_var, 'XML::Twig::Elt', 'P containing VAR from get_xpath');
+like($p_var->text,
+    qr(^Hello, cruel \d{4}-\d{2}-\d{2}$), 'Contains interpolated variable');
+isa_ok(($p_var->descendants('span'))[0],
+    'XML::Twig::Elt', 'SPAN produced by P containing VAR from get_xpath');
+
+isa_ok($obj->SetVar(Date => '19100'),
+    'DBIx::ReportBuilder::Variable', "Set a variable");
+is($obj->Var('Date'), '19100', "Retrieve its value");
+
+isa_ok($obj->SetVar(Era => 'Discord'),
+    'DBIx::ReportBuilder::Variable', "Add a variable");
+is($obj->Var('Era'), 'Discord', "Retrieve its value");
+ok($obj->Reload, 'Reload successful');
+is($obj->Var('Era'), undef, "Value should vanish after reload");
+
+isa_ok($obj->SetVarDefault(Era => 'Discord'),
+    'DBIx::ReportBuilder::Variable', "Add a variable with default value");
+is($obj->Var('Era'), 'Discord', "Retrieve its value");
+ok($obj->Reload, 'Reload successful');
+is($obj->Var('Era'), 'Discord', "Value should retain after reload");
+
+is_deeply(
+    [$obj->Vars],
+    [qw( Page PageCount Date Time ReportName Era)],
+    "Vars should return all existing variable"
+);
+
+is($obj->VarInsert( 'Era' ), 3, 'Set vars in text');
+my ($var2) = $obj->PartObj->last_child('var');
+isa_ok($var2, 'XML::Twig::Elt', 'VAR from get_xpath');
+is($var2->att('name'), 'era');
+
+my ($p_var2) = $obj->RenderEditObj->root->get_xpath(
+    '/div/table/tr[3]/td[2]/table/tr/td/p'
+);
+isa_ok($p_var2, 'XML::Twig::Elt', 'P containing VAR from get_xpath');
+like($p_var2->text,
+    qr(^Hello, cruel \d{4}-\d{2}-\d{2}Discord$), 'Contains interpolated variables');
+isa_ok(($p_var2->descendants('span'))[1],
+    'XML::Twig::Elt', 'SPAN produced by P containing VAR from get_xpath');
+
+# }}}
+# Navigation - Part - P, Img: Insert, Change, Up, Down, Remove {{{
 
 is($obj->PartInsertP, 4, 'Insert p moves PartId');
 is_deeply($obj->PartObj->atts,
@@ -117,9 +182,16 @@ is($obj->PartDown, 4, 'Move down img');
 is($obj->PartDown, 4, 'Move down again has no effect');
 isa_ok($obj->PartObj, 'DBIx::ReportBuilder::Part::Img');
 
+open my $fh, "$FindBin::Bin/test.png" or die $!;
+is($obj->PartChange(src => $fh), 4, "Upload an image");
+like($obj->PartObj->att('src'),
+    qr(^javascript:'\\x89\\x50\\x4e\\x47\\x0d\\x0a), 'Image parsed as base64');
+
 $obj->SetPartId(3);
 is($obj->PartRemove, 3, 'Remove p returns PartId to 3');
 isa_ok($obj->PartObj, 'DBIx::ReportBuilder::Part::Img');
+is($obj->SetPartId(0), 3, 'PartId autofocus to 3 even for non-P elements');
+
 is($obj->PartRemove, 3, 'Remove img retains PartId in 3');
 
 isa_ok($obj->PartObj, 'DBIx::ReportBuilder::Part::P');
@@ -168,22 +240,23 @@ is($obj->ClauseDown, 2, 'Move down again has no effect');
 is($obj->ClauseRemove, 1, 'Remove limit returns ClauseId to 1');
 is($obj->ClauseRemove, 0, 'Remove limit returns ClauseId to 0');
 
-is($obj->ClauseInsertLimit( field => 'id', operator => '<', value => 2000 ),
+is($obj->ClauseInsertLimit( field => 'id', operator => '<', text => 2000 ),
     1, 'Insert limit increments ClauseId');
-is($obj->ClauseChange( value => 20 ),
+is($obj->ClauseChange( text => 20 ),
     1, 'Change limit does not affect ClauseId');
 is_deeply(
     $obj->ClauseObj->atts,
-    { id => 'Clause1', field => 'id', operator => '<', value => 20 },
+    { id => 'Clause1', field => 'id', operator => '<' },
     'Attr changed as part of Insert'
 );
+is($obj->ClauseObj->text, 20, 'Text changed as part of Insert');
 
 # }}}
-# Navigation - Clause - Cell - Insert, Change, Remove, Up, Down {{{
 
 SKIP: { skip("Can't connect to RT3 database", 9) unless $obj->Handle->dbh;
+# Navigation - Clause - Cell - Insert, Change, Remove, Up, Down {{{
 
-is($obj->ClauseInsertCell( field => 'id', text => 'Id' ),
+is($obj->ClauseInsertCell( field => 'id', text => "\${Era}Id" ),
     2, 'Insert cell increments ClauseId');
 is($obj->ClauseInsertCell( field => 'id', text => 'Template' ),
     3, 'Insert cell increments ClauseId');
@@ -195,8 +268,11 @@ is_deeply(
     { id => 'Clause3', field => 'template' },
     'Attr changed as part of Insert'
 );
-is($obj->ClauseInsertCell( field => 'id', text => '100xId', formula => '($_ + $id) * 50' ),
-    4, 'Insert cell increments ClauseId');
+is($obj->ClauseInsertCell(
+    field => 'id',
+    text => '100xId',
+    formula => '(($_ + $id) * 50) . $Era'
+), 4, 'Insert cell increments ClauseId');
 
 # }}}
 # Edit rendering - Part - Table {{{
@@ -209,14 +285,14 @@ isa_ok($table, 'XML::Twig::Elt', 'Table from get_xpath');
 is($table->first_child('caption')->text,
     'Scrip List', 'Correctly renders caption');
 is($table->first_child('thead')->text,
-    'IdTemplate100xId', 'Correctly renders thead');
-is($table->first_child('tbody')->text,
-    '1110022200.........',
-    'Correctly renders tbody');
-is($table->first_child('tbody')->children,
-    3, 'Edit should only preserve 2 rows, plus ...');
+    'DiscordIdTemplate100xId', 'Correctly renders thead');
+like($table->first_child('tbody')->text,
+    qr(^1+0+Discord2+0+Discord\Q.........\E$), 'Correctly renders tbody');
+ok($table->first_child('tbody')->children <= 3,
+    'Edit should only preserve 2 rows, plus ...');
+is($obj->ClauseObj(1)->text, 20, 'Text of limit is still 20');
 is($table->last_child('tbody')->text,
-    'OPERATOR => <, VALUE => 20, FIELD => id',
+    "FIELD => 'id', OPERATOR => '<', VALUE = '20'",
     'Correctly renders second tbody');
 
 # }}}
@@ -244,11 +320,11 @@ is($obj->ClauseObj->parent->parent->tag, 'graph', "Cell belongs to the correct p
 
 is($obj->ClauseInsertJoin( field => 'queue', table2 => 'queues', field2 => 'id' ),
     5, 'Insert join before cells brings back ClauseId');
-is($obj->ClauseInsertLimit( field => 'name', table => 'queues', value => '___Approvals' ),
+is($obj->ClauseInsertLimit( field => 'name', table => 'queues', text => '___Approvals' ),
     6, 'Insert limit increments ClauseId');
 is($obj->ClauseInsertJoin( field => 'queue', table2 => 'scrips', field2 => 'queue' ),
     6, 'Insert join before limit brings back ClauseId');
-is($obj->ClauseInsertLimit( field => 'id', table => 'scrips', operator => '>', value => '0' ),
+is($obj->ClauseInsertLimit( field => 'id', table => 'scrips', operator => '>', text => '0' ),
     8, 'Insert limit brings forward ClauseId');
 is($obj->ClauseInsertOrderby( field => 'description', table => 'scrips' ),
     9, 'Insert orderby increments ClauseId');
@@ -265,8 +341,8 @@ my ($graph_as_table) = $obj->RenderEditObj->root->get_xpath(
 isa_ok($graph_as_table, 'XML::Twig::Elt', 'GraphAsTable from get_xpath');
 is($graph_as_table->first_child('thead')->text,
     'IdName', 'Correctly renders thead');
-is($graph_as_table->first_child('tbody')->text,
-    '9New Pending Approval10Approval Passed......', 'Correctly renders tbody');
+like($graph_as_table->first_child('tbody')->text,
+    qr(^\d+New Pending Approval\d+Approval Passed\Q......\E), 'Correctly renders tbody');
 
 isa_ok($obj->PartObj->set_tag('graph'),
     'DBIx::ReportBuilder::Part::Graph', 'Table->set_tag("graph")');
@@ -277,23 +353,32 @@ isa_ok($obj->PartObj->set_tag('graph'),
 my ($graph) = $obj->RenderEditObj->root->get_xpath(
     '/div/table/tr[3]/td[2]/table/tr[2]/td/graph'
 );
-
 isa_ok($graph, 'XML::Twig::Elt', 'Graph from get_xpath');
 
 # XXX - graph should show image
 
 # }}}
-
 }
 
-# TODO Navigation - Part - Include: Insert, Change
+# Navigation - Part - Include: Insert, Change {{{
+
+is($obj->PartInsertInclude( report => 3 ),
+    5, 'Insert include increments PartId');
+is($obj->PartObj->tag, 'include', 'Really inserted');
+isa_ok($obj->PartObj, 'DBIx::ReportBuilder::Part::Include');
+
+my ($include) = $obj->RenderEditObj->root->get_xpath(
+    '/div/table/tr[3]/td[2]/table/tr[3]/td/include'
+);
+isa_ok($include, 'XML::Twig::Elt', 'Include from get_xpath');
+is($include->text, 'include: #3', 'Correctly renders include');
+
+# XXX - test for renderreport in RenderHTMLObj
+
+# }}}
+
+
 # TODO Edit rendering - Part - Include
-
-# TODO Navigation - Variables - Default: Insert, Change
-# TODO Edit rendering - Variables - Default
-
-# TODO Navigation - Variables - UserDefined: Insert, Change
-# TODO Navigation - Part - Table: Change - Bind variables
-# TODO Edit rendering - Variables - UserDefined
+# TODO upload image
 
 1;

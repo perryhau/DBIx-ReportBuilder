@@ -1,5 +1,5 @@
 # $File: //member/autrijus/DBIx-ReportBuilder/lib/DBIx/ReportBuilder/Attribute.pm $ $Author: autrijus $
-# $Revision: #7 $ $Change: 7997 $ $DateTime: 2003/09/09 00:48:25 $
+# $Revision: #14 $ $Change: 8047 $ $DateTime: 2003/09/11 00:35:14 $
 
 package DBIx::ReportBuilder::Attribute;
 use strict;
@@ -9,24 +9,34 @@ sub new {
     return bless({ @_ }, $class);
 }
 
-sub Tag { $_[0]{Tag} }
-sub Object { $_[0]{Object} }
-sub Name { ucfirst($_[0]{Att}) }
-sub Att { $_[0]{Att} }
-sub ReportBuilderObj { $_[0]{Object}->twig }
+sub Att	    { $_[0]{Att} }
+sub Tag	    { $_[0]{Tag} }
+sub Object  { $_[0]{Object} }
+sub Name    { $_[0]->Object->ucase($_[0]{Att}) }
+sub Type    { $_[0]->Data->{$_[0]->{Att}}->{type} }
+sub Default { $_[0]->Data->{$_[0]->{Att}}->{default} }
+sub ReportBuilderObj { $_[0]->Object->twig }
+
+sub Value {
+    my $self = shift;
+    my $obj  = $self->Object or return;
+    my $att  = $self->Att;
+
+    return $obj->att($att) unless $att eq 'text';
+
+    $obj = $obj->copy;
+    foreach my $var ($obj->children('var')) {
+	$var->set_text('${' . $self->Object->ucase($var->att('name')) . '}');
+    }
+    my $text = $obj->text;
+    $text =~ s/\$\{(\w+)\}(?!\w)/\$$1/g;
+    return $text;
+}
 
 sub Attributes {
     my $self  = shift;
     my $array = $self->Tag2Attributes->{$self->Tag} or return;
     return wantarray ? @$array : $array;
-}
-
-sub Type {
-    $_[0]->Data->{$_[0]->{Att}}->{type}
-}
-
-sub Default {
-    $_[0]->Data->{$_[0]->{Att}}->{default}
 }
 
 sub Values {
@@ -49,7 +59,7 @@ use constant Tag2Attributes => {
     graph       => [ qw( table shape style legend threed threed_shading cumulate
 			 show_values values_vertical rotate_chart caption ) ],
     join	=> [ qw( table field table2 field2 ) ],  # type
-    limit	=> [ qw( table field operator value ) ], # entryaggregator 
+    limit	=> [ qw( table field operator text ) ], # entryaggregator 
     orderby	=> [ qw( table field order ) ],
     cell	=> [ qw( field font size align formula text ) ],
 };
@@ -75,7 +85,7 @@ use constant Data => {
     field2		=> {
 	type		=> 'select',
 	values		=> \&_fields2,
-	applicable	=> sub { $_[0]->att('table2') },
+	applicable	=> sub { $_[0]->Object->att('table2') },
     },
     font		=> {
 	type		=> 'select',
@@ -88,8 +98,7 @@ use constant Data => {
 	type		=> 'number',
     },
     report		=> {
-	type		=> 'select',
-	values		=> \&_reports,
+	type		=> 'include',
     },
     operator		=> {
 	type		=> 'select',
@@ -121,9 +130,6 @@ use constant Data => {
 	values		=> \&_tables2,
     },
     text		=> {
-	type		=> 'text',
-    },
-    value		=> {
 	type		=> 'text',
     },
     width		=> {
@@ -227,10 +233,10 @@ use constant Attribute2Tags => do {
 };
 
 sub _fonts { 'serif', 'sans serif', 'monotype' }
-sub _reports { }
 sub _fields {
     my $self = shift;
-    my $table = $self->Object->parent->parent->att('table') or return;
+    my $table = shift;
+    $table ||= $self->Object->parent->parent->att('table') or return;
     my $dbh = $self->ReportBuilderObj->Handle->dbh;
     my $driver = $dbh->{Driver}{Name};
 
@@ -251,7 +257,10 @@ sub _fields {
 	} @{$dbh->selectall_arrayref("DESCRIBE $table;")};
     }
 }
-sub _fields2 {}
+sub _fields2 {
+    my $self = shift;
+    return $self->_fields( $self->Object->att('table2') || 'templates' );
+}
 sub _tables {
     my $self = shift;
     sort map { s/^\W+//; s/\W+$//; $_ }

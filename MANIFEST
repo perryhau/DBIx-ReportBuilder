@@ -1,14 +1,9 @@
 Changes
-MANIFEST			This list of files
-META.yml
-Makefile.PL
-README
-SIGNATURE
 inc/Module/Install.pm
 inc/Module/Install/Base.pm
 inc/Module/Install/Include.pm
-inc/Module/Install/MakeMaker.pm
 inc/Module/Install/Makefile.pm
+inc/Module/Install/MakeMaker.pm
 inc/Module/Install/Metadata.pm
 inc/Test/Builder.pm
 inc/Test/More.pm
@@ -33,5 +28,12 @@ lib/DBIx/ReportBuilder/Render/PDF.pm
 lib/DBIx/ReportBuilder/Render/SXW.pm
 lib/DBIx/ReportBuilder/Render/XML.pm
 lib/DBIx/ReportBuilder/Search.pm
+lib/DBIx/ReportBuilder/Variable.pm
+Makefile.PL
+MANIFEST			This list of files
+META.yml
+README
+SIGNATURE
 t/0-signature.t
 t/1-basic.t
+t/test.png

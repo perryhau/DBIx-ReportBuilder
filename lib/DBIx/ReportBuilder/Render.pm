@@ -1,5 +1,5 @@
 # $File: //member/autrijus/DBIx-ReportBuilder/lib/DBIx/ReportBuilder/Render.pm $ $Author: autrijus $
-# $Revision: #9 $ $Change: 7992 $ $DateTime: 2003/09/08 22:34:50 $
+# $Revision: #12 $ $Change: 8047 $ $DateTime: 2003/09/11 00:35:14 $
 
 package DBIx::ReportBuilder::Render;
 
@@ -21,6 +21,9 @@ sub new {
 	    joins	=> \&joins,
 	    limits	=> \&limits,
 	    orderbys    => \&orderbys,
+	    var		=> \&var,
+	    meta	=> \&meta,
+	    include	=> \&include,
 	    %{$args{twig_handlers}||{}},
 	},
 	start_tag_handlers => {
@@ -69,7 +72,6 @@ sub p {
 sub cells {
     my $self = shift;
     my $item = $_;
-    my $SB = $item->parent->att('SearchBuilder');
     my @children = $item->cut_children;
     my $tr = $item->insert('thead', 'tr');
     foreach my $item (@children) {
@@ -80,17 +82,42 @@ sub cells {
 	$item->set_tag('td');
     }
     my $tbody = $item->insert_new_elt(last_child => 'tbody');
+
+    $self->_do_search(
+	$item->parent->att('SearchBuilder'),
+	$tbody,
+	\@children,
+    );
+
+    $item->parent->del_att(qw( Tables OrderBy SearchBuilder ));
+    $item->erase;
+}
+
+sub _do_search {
+    my ($self, $SB, $tbody, $children) = @_;
+
+    return unless $SB and $SB->RedoSearch;
+
+    my @fields = map { $_->att('field') } @$children;
+    my %vars = map {
+	$self->Object->lcase($_) => $self->Object->Var($_),
+	$self->Object->ucase($_) => $self->Object->Var($_),
+    } $self->Object->Vars;
+
     while (my $Record = $SB->Next) {
 	my $tr = $tbody->insert_new_elt(last_child => 'tr');
-	my @fields = map { $_->att('field') } @children;
 
-	foreach my $item (@children) {
+	foreach my $item (@$children) {
 	    my $td = $item->copy;
 	    my $text = $Record->{$td->att('field')};
 	    my $formula = $td->att('formula');
 	    if (defined($formula) and length($formula)) {
 		my $safe = Safe->new;
 		$safe->permit(qw(:base_core :base_math));
+
+		while (my ($k, $v) = each %vars) {
+		    ${$safe->varglob($k)} = $v;
+		}
 		${$safe->varglob('_')} = $text;
 		${$safe->varglob($_)} = $Record->{$_} for @fields;
 
@@ -104,8 +131,6 @@ sub cells {
 	    $td->paste(last_child => $tr);
 	}
     }
-    $item->parent->del_att(qw( Tables OrderBy SearchBuilder ));
-    $item->erase;
 }
 
 sub table {
@@ -170,6 +195,7 @@ sub limit {
     my $SB = $item->parent->parent->att('SearchBuilder');
     $SB->Limit(
 	CASESENSITIVE => 1,
+	VALUE	      => $item->text,
 	(map { uc($_) => $item->att($_) } $item->att_names),
 	_alias($item),
     );
@@ -194,5 +220,18 @@ sub orderbys {
 
 sub joins { $_->delete }
 sub limits { $_->delete }
+sub meta { $_->delete }
+
+sub var {
+    my $self = shift;
+    my $item = $_;
+    XML::Twig::Elt->new( '#PCDATA' => $item->att('name') )->replace($item);
+}
+
+sub include {
+    XML::Twig::Elt->parse(
+	$_[0]->Object->render_report($_->att('report'))
+    )->replace($_);
+}
 
 1;

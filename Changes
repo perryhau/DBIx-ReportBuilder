@@ -1,4 +1,81 @@
 ____________________________________________________________________________
+[  8048] By: autrijus                              on 2003/09/11  00:35:39
+        Log: * This be 0.00_05.
+	   ! lib/DBIx/ReportBuilder.pm
+____________________________________________________________________________
+[  8047] By: autrijus                              on 2003/09/11  00:35:14
+        Log: * Include support for inclusion of subreports.
+             * Img support for uploading images and displaying them.
+             * Variables support for default and user-definable $var in texts.
+	   ! lib/DBIx/ReportBuilder.pm lib/DBIx/ReportBuilder/Attribute.pm
+	   ! lib/DBIx/ReportBuilder/Part.pm
+	   ! lib/DBIx/ReportBuilder/Render.pm
+	   ! lib/DBIx/ReportBuilder/Render/Edit.pm
+	   ! lib/DBIx/ReportBuilder/Variable.pm t/1-basic.t
+____________________________________________________________________________
+[  8038] By: autrijus                              on 2003/09/10  18:44:11
+        Log: * add a test image for uploading.
+             * we now need Image::Size.
+	   + t/test.png
+	   ! MANIFEST Makefile.PL t/1-basic.t
+____________________________________________________________________________
+[  8037] By: autrijus                              on 2003/09/10  18:33:37
+        Log: * implement full variable support in p, limit:text and limit:formula.
+             * ->ucase and ->lcase now provides conversion between internal
+             and external name formats.
+             * $obj->Id now returns the numeric representation of its id.
+             * searchbuilder was failing on second search and on; fixed.
+	   + lib/DBIx/ReportBuilder/Variable.pm
+	   ! lib/DBIx/ReportBuilder.pm lib/DBIx/ReportBuilder/Attribute.pm
+	   ! lib/DBIx/ReportBuilder/Part.pm
+	   ! lib/DBIx/ReportBuilder/Render.pm
+	   ! lib/DBIx/ReportBuilder/Render/Edit.pm
+	   ! lib/DBIx/ReportBuilder/Search.pm t/1-basic.t
+____________________________________________________________________________
+[  8016] By: autrijus                              on 2003/09/09  11:35:28
+        Log: * further relaxing tests
+	   ! t/1-basic.t
+____________________________________________________________________________
+[  8015] By: autrijus                              on 2003/09/09  11:33:49
+        Log: * foo
+	   ! t/1-basic.t
+____________________________________________________________________________
+[  8014] By: autrijus                              on 2003/09/09  11:31:26
+        Log: * foo
+	   ! t/1-basic.t
+____________________________________________________________________________
+[  8013] By: autrijus                              on 2003/09/09  11:30:55
+        Log: * start of win32 testing
+	   ! lib/DBIx/ReportBuilder/Attribute.pm
+____________________________________________________________________________
+[  8012] By: autrijus                              on 2003/09/09  11:28:36
+        Log: * add test for autofocusing to non-p elements
+	   ! t/1-basic.t
+____________________________________________________________________________
+[  8010] By: autrijus                              on 2003/09/09  11:21:32
+        Log: * .* ..
+	   ! lib/DBIx/ReportBuilder/Attribute.pm
+____________________________________________________________________________
+[  8009] By: autrijus                              on 2003/09/09  11:20:05
+        Log: * foo.
+	   ! lib/DBIx/ReportBuilder/Attribute.pm
+____________________________________________________________________________
+[  8008] By: autrijus                              on 2003/09/09  11:18:49
+        Log: * self.
+	   ! lib/DBIx/ReportBuilder/Attribute.pm
+____________________________________________________________________________
+[  8006] By: autrijus                              on 2003/09/09  11:16:26
+        Log: * asd.
+	   ! lib/DBIx/ReportBuilder/Attribute.pm
+____________________________________________________________________________
+[  8003] By: autrijus                              on 2003/09/09  10:23:21
+        Log: * don't assume first child is p upon loading
+	   ! lib/DBIx/ReportBuilder.pm
+____________________________________________________________________________
+[  8000] By: autrijus                              on 2003/09/09  01:02:37
+        Log: * nonfatal.
+	   ! lib/DBIx/ReportBuilder/Render.pm
+____________________________________________________________________________
 [  7998] By: autrijus                              on 2003/09/09  00:49:38
         Log: * This be 0.00_04.
 	   ! MANIFEST lib/DBIx/ReportBuilder.pm t/1-basic.t

@@ -1,5 +1,5 @@
 # $File: //member/autrijus/DBIx-ReportBuilder/lib/DBIx/ReportBuilder/Part.pm $ $Author: autrijus $
-# $Revision: #7 $ $Change: 7993 $ $DateTime: 2003/09/08 23:40:50 $
+# $Revision: #9 $ $Change: 8047 $ $DateTime: 2003/09/11 00:35:14 $
 
 package DBIx::ReportBuilder::Part;
 
@@ -7,17 +7,17 @@ use strict;
 use DBIx::ReportBuilder ':all';
 use base 'XML::Twig::Elt';
 
-use constant ElementClass => __PACKAGE__;
+use constant ElementClass   => __PACKAGE__;
 
 =head2 new
 
 The extremely flexible constructor method:
 
     DBIx::ReportBuilder::Part::P->new;			# p object
-    DBIx::ReportBuilder::Part->new('p');			# ditto
+    DBIx::ReportBuilder::Part->new('p');		# ditto
     $part = DBIx::ReportBuilder::Part->new($elt);	# rebless $elt into $elt->tag
-    $part->new;					# another p object
-    $part->new('img');				# an img object
+    $part->new;						# another p object
+    $part->new('img');					# an img object
 
 =cut
 
@@ -91,16 +91,73 @@ sub Change {
     foreach my $key ( $self->Atts ) {
 	defined $args{$key} or next;
 	my $value = $args{$key};
-	# $value = 1 if $value eq 'on';
-	# $value = 0 if $value eq 'off';
 	if ($key eq 'text') {
-	    $self->set_text( $value );
+	    $self->set_text('');
+	    foreach my $token (split(/(\$\{?\w+\}?)/, $value)) {
+		next unless length($token);
+		if ($token =~ /\$\{?(\w+)\}?/) {
+		    $self->insert_new_elt(
+			last_child => 'var',
+			{ name => $self->lcase($1) },
+		    );
+		    next;
+		}
+		$self->insert_new_elt( last_child => '#PCDATA', $token);
+	    }
+	}
+	elsif ($key eq 'src' and ref($value)) {
+	    binmode($value);
+
+	    my $stream = do { local $/; <$value> };
+
+	    require Image::Size;
+	    my ($x, $y, $type) = Image::Size::imgsize(\$stream);
+	    return unless $x;
+
+	    $self->_ConvertToPNG( \$stream ) unless $type eq 'PNG';
+
+	    $self->set_att( width => $x, height => $y );
+	    $self->set_att(
+		$key => "javascript:'\\x" .
+			join("\\x", unpack("(H2)*", $stream)) .
+			"'"
+	    );
 	}
 	else {
 	    $self->set_att( $key => $value );
 	}
     }
     return 0;
+}
+
+sub Id {
+    my $self = shift;
+    $self->att('id') =~ /(\d+)$/ or return;
+    return $1;
+}
+
+sub _ConvertToPNG {
+    my ($self, $ref) = @_;
+
+    require File::Temp;
+
+    my ($tmpfh, $tmpfile) = File::Temp::tempfile() or die $!;
+    binmode($tmpfh);
+    print $tmpfh $$ref;
+    close $tmpfh;
+
+    require Image::Magick;
+    my $img = Image::Magick->new or die $!;
+    $img->Read($tmpfile);
+    $img->Write("$tmpfile.png");
+
+    open $tmpfh, "$tmpfile.png" or die $!;
+    binmode($tmpfh);
+    $$ref = do { local $/; <$tmpfh> };
+    close $tmpfh;
+
+    unlink $tmpfile;
+    unlink "$tmpfile.png";
 }
 
 1;

@@ -1,5 +1,5 @@
 # $File: //member/autrijus/DBIx-ReportBuilder/lib/DBIx/ReportBuilder/Render/Edit.pm $ $Author: autrijus $
-# $Revision: #7 $ $Change: 7995 $ $DateTime: 2003/09/09 00:20:34 $
+# $Revision: #9 $ $Change: 8047 $ $DateTime: 2003/09/11 00:35:14 $
 
 package DBIx::ReportBuilder::Render::Edit;
 use base 'DBIx::ReportBuilder::Render';
@@ -129,20 +129,23 @@ sub table {
 	$tr->insert_new_elt('td', '...') for 1 .. $cnt;
     }
 
-    my $clauses = $part->first_child('Clauses')->cut;
-    $clauses->children_count or return;
+    my $clauses = $part->att('#Clauses') or return;
+    return unless @$clauses;
 
     $tbody = $part->insert_new_elt(last_child => 'tbody');
 
-    foreach my $item ($clauses->children) {
+    foreach my $item (@$clauses) {
 	foreach my $clause ($item->children) {
 	    my $th = $tbody->insert_new_elt(last_child => 'tr')
 		  ->insert_new_elt('th',
 		      { bgcolor => 'gray', colspan => ($cnt || 1),
 		        align => 'left', style => 'font-size: small' });
-	    $th->set_text( join(', ', map {
-		uc($_) . ' => ' . $clause->att($_)
-	    } grep !/^id$/, $clause->att_names ) );
+	    $th->set_text( join(
+		', ',
+		( map { uc($_) . " => '" . $clause->att($_) . "'" }
+		    sort grep !/^id$/, $clause->att_names ),
+		( ($clause->tag eq 'limit') ? "VALUE = '" . $clause->text ."'" : () ),
+	    ) );
 	    $th->insert_new_elt($self->type_icon($clause->tag, 'left'));
 	    $th->set_id($clause->id);
 	    $self->clause($th, $clause_cur, $part_id);
@@ -187,14 +190,14 @@ sub part {
 sub search {
     my $self = shift;
     $_->set_att(rows => 2);
-    $_->insert_new_elt('Clauses');
+    $_->set_att('#Clauses' => []);
     $self->NEXT::search(@_);
 }
 
 sub clauses {
     my $self = shift;
     my $item = $_;
-    $item->copy->paste( $item->parent->first_child('Clauses') );
+    push @{$item->parent->att('#Clauses')}, $item->copy;
     my $method = "SUPER::" . $item->tag;
     $self->$method(@_);
 }
@@ -206,21 +209,24 @@ sub p {
 }
 
 sub include {
+    my $self = shift;
     $_->set_text(
-	loc($_->tag) . ': ' .  $_->att('name')
+	$self->Object->loc($_->tag) .
+	': ' .
+	$self->Object->describe_report($_->att('report'))
     );
-    $_->del_att('name');
-    $_->set_tag('p');
 }
 
 sub img {
-    $_->set_att('src' => '/RG/img/imgUpload.png') unless $_->att;
+    $_->set_att('src' => '/RG/img/imgUpload.png') unless $_->att('src');
 }
 
 sub var {
     my $self = shift;
-    $_->set_text( $self->loc($_->tag) . ': ' .  $_->att('name') );
-    $_->erase;
+    $_->set_text( $self->Object->Var( $_->att('name')) );
+    $_->set_tag('span');
+    $_->set_att('style' => 'background: gray');
+    $_->del_att('name');
 }
 
 sub inContent { $_[0]->{in_content} || 0 }
