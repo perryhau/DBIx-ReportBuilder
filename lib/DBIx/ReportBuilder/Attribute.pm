@@ -1,5 +1,5 @@
 # $File: //member/autrijus/DBIx-ReportBuilder/lib/DBIx/ReportBuilder/Attribute.pm $ $Author: autrijus $
-# $Revision: #3 $ $Change: 7983 $ $DateTime: 2003/09/08 17:03:47 $
+# $Revision: #7 $ $Change: 7997 $ $DateTime: 2003/09/09 00:48:25 $
 
 package DBIx::ReportBuilder::Attribute;
 use strict;
@@ -11,10 +11,13 @@ sub new {
 
 sub Tag { $_[0]{Tag} }
 sub Object { $_[0]{Object} }
+sub Name { ucfirst($_[0]{Att}) }
+sub Att { $_[0]{Att} }
+sub ReportBuilderObj { $_[0]{Object}->twig }
 
 sub Attributes {
     my $self  = shift;
-    my $array = $self->Tag2Attributes->{$self->Tag};
+    my $array = $self->Tag2Attributes->{$self->Tag} or return;
     return wantarray ? @$array : $array;
 }
 
@@ -28,7 +31,7 @@ sub Default {
 
 sub Values {
     my $rv = $_[0]->Data->{$_[0]->{Att}}->{values} or return;
-    return $rv->($_[0]) if UNIVERSAL::isa($_[0] => 'CODE');
+    return $rv->($_[0]) if UNIVERSAL::isa($rv => 'CODE');
     return wantarray ? @$rv : $rv;
 }
 
@@ -39,7 +42,7 @@ sub Applicable {
 }
 
 use constant Tag2Attributes => {
-    p           => [ qw( align font size border text ) ],
+    p           => [ qw( font size border align text ) ],
     img         => [ qw( width height src ) ],
     include     => [ qw( report ) ],
     table       => [ qw( table rows font size border caption ) ],
@@ -48,7 +51,7 @@ use constant Tag2Attributes => {
     join	=> [ qw( table field table2 field2 ) ],  # type
     limit	=> [ qw( table field operator value ) ], # entryaggregator 
     orderby	=> [ qw( table field order ) ],
-    cell	=> [ qw( field align font size formula ) ],
+    cell	=> [ qw( field font size align formula text ) ],
 };
 
 use constant Data => {
@@ -67,7 +70,7 @@ use constant Data => {
     field		=> {
 	type		=> 'select',
 	values		=> \&_fields,
-	applicable	=> sub { $_[0]->att('table') },
+#	applicable	=> sub { $_[0]->att('table') },
     },
     field2		=> {
 	type		=> 'select',
@@ -223,11 +226,37 @@ use constant Attribute2Tags => do {
     \%a2t;
 };
 
-sub _fonts { 'ming', 'kai' }
+sub _fonts { 'serif', 'sans serif', 'monotype' }
 sub _reports { }
-sub _fields {}
+sub _fields {
+    my $self = shift;
+    my $table = $self->Object->parent->parent->att('table') or return;
+    my $dbh = $self->ReportBuilderObj->Handle->dbh;
+    my $driver = $dbh->{Driver}{Name};
+
+    if ($driver eq 'ODBC') {
+	return map {
+	    my ($type) = lc($_->{TYPE_NAME});
+	    $type =~ s/ .*//;
+	    lc($_->{COLUMN_NAME});
+	} values(
+	    %{$dbh->selectall_hashref( "SP_COLUMNS $table;", 'COLUMN_NAME' ) || {}}
+	);
+    }
+    else {
+	# only tested on mysql, but should work elsewhere too
+	return map {
+	    my ($type) = map lc, ($_->[1] =~ /^(\w+)/);
+	    lc($_->[0]);
+	} @{$dbh->selectall_arrayref("DESCRIBE $table;")};
+    }
+}
 sub _fields2 {}
-sub _tables {}
-sub _tables2 {}
+sub _tables {
+    my $self = shift;
+    sort map { s/^\W+//; s/\W+$//; $_ }
+	$self->ReportBuilderObj->Handle->dbh->tables;
+}
+sub _tables2 { goto &_tables }
 
 1;

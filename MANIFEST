@@ -29,6 +29,7 @@ lib/DBIx/ReportBuilder/Part/Table.pm
 lib/DBIx/ReportBuilder/Render.pm
 lib/DBIx/ReportBuilder/Render/Edit.pm
 lib/DBIx/ReportBuilder/Render/HTML.pm
+lib/DBIx/ReportBuilder/Render/PDF.pm
 lib/DBIx/ReportBuilder/Render/SXW.pm
 lib/DBIx/ReportBuilder/Render/XML.pm
 lib/DBIx/ReportBuilder/Search.pm

@@ -1,5 +1,5 @@
 # $File: //member/autrijus/DBIx-ReportBuilder/lib/DBIx/ReportBuilder/Part.pm $ $Author: autrijus $
-# $Revision: #5 $ $Change: 7981 $ $DateTime: 2003/09/08 16:27:28 $
+# $Revision: #7 $ $Change: 7993 $ $DateTime: 2003/09/08 23:40:50 $
 
 package DBIx::ReportBuilder::Part;
 
@@ -80,10 +80,10 @@ sub Down {
 
 sub Remove {
     my $self = shift;
-    my $part = $self->prev_sibling;
-    $self->new('p')->paste(before => $self) unless $part;
+    my $part = $self->prev_sibling || $self->next_sibling;
+    $part ||= $self->new('p')->paste(before => $self);
     $self->delete;
-    return( $part ? -1 : 0 );
+    return $part;
 }
 
 sub Change {
@@ -93,7 +93,12 @@ sub Change {
 	my $value = $args{$key};
 	# $value = 1 if $value eq 'on';
 	# $value = 0 if $value eq 'off';
-	$self->set_att( $key => $value );
+	if ($key eq 'text') {
+	    $self->set_text( $value );
+	}
+	else {
+	    $self->set_att( $key => $value );
+	}
     }
     return 0;
 }

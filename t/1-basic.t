@@ -1,12 +1,14 @@
 # $File: //member/autrijus/DBIx-ReportBuilder/t/1-basic.t $ $Author: autrijus $
-# $Revision: #13 $ $Change: 7984 $ $DateTime: 2003/09/08 17:11:41 $
+# $Revision: #17 $ $Change: 7998 $ $DateTime: 2003/09/09 00:49:38 $
 
-use Test::More tests => 102;
+use Test::More tests => 110;
 use FindBin;
 
 use strict;
 use lib "$FindBin::Bin/../lib";
-local $SIG{__WARN__} = sub { print $_[0] unless $_[0] =~ m{XML/Twig} };
+local $SIG{__WARN__} = sub {
+    print $_[0] unless $_[0] =~ m{XML/Twig|DBIx/SearchBuilder}
+};
 
 # Database - mysql, [ODBC] {{{
 
@@ -51,14 +53,13 @@ ok($obj->Reload, 'Reload successful');
 is($obj->PartId, 3, 'Reload does not move PartId');
 is($obj->RenderEdit, $render, 'Render consistency across reload');
 is($obj->Recount, 3, 'Recount returns PartId under scalar context');
-is($obj->RenderEdit,
-    $render, 'Render consistency across reload');
+is($obj->RenderEdit, $render, 'Render consistency across recount');
 
 # }}}
 # Attribute {{{
 
 is_deeply( [$obj->PartObj->Atts],
-    [qw( align font size border text )], 'Atts gets attributes');
+    [qw( font size border align text )], 'Atts gets attributes');
 is( $obj->PartObj->Att('shape')->Type,
     'select', 'Att("shape") is a typed attribute');
 is_deeply( [$obj->PartObj->Att('shape')->Values],
@@ -116,8 +117,10 @@ is($obj->PartDown, 4, 'Move down img');
 is($obj->PartDown, 4, 'Move down again has no effect');
 isa_ok($obj->PartObj, 'DBIx::ReportBuilder::Part::Img');
 
-is($obj->PartRemove, 3, 'Remove img returns PartId to 3');
-is($obj->PartRemove, 3, 'Remove p retains PartId in 3');
+$obj->SetPartId(3);
+is($obj->PartRemove, 3, 'Remove p returns PartId to 3');
+isa_ok($obj->PartObj, 'DBIx::ReportBuilder::Part::Img');
+is($obj->PartRemove, 3, 'Remove img retains PartId in 3');
 
 isa_ok($obj->PartObj, 'DBIx::ReportBuilder::Part::P');
 is($obj->PartObj->parent->tag, 'content', 'Still in content after removal');
@@ -135,6 +138,7 @@ is_deeply(
     [qw(joins limits orderbys cells)],
     'New table has subelements'
 );
+is($obj->RenderEdit, $obj->RenderEdit, 'RenderEdit consistency');
 my @attr = (table => 'scrips', rows => 10, caption => 'Scrip List');
 is($obj->PartChange(@attr), 3, 'Change does not move PartId');
 is_deeply($obj->PartObj->atts, { id => 'Part3', @attr }, 'Changed attributes');
@@ -145,6 +149,13 @@ is_deeply($obj->PartObj->atts, { id => 'Part3', @attr }, 'Changed attributes');
 is($obj->ClauseInsertLimit, 1, 'Insert clause increments ClauseId');
 is($obj->ClauseId, 1, 'ClauseId increments to 1');
 is_deeply([$obj->Recount], [3, 1], 'Recount in list context returns both IDs');
+
+is($obj->SetPartId(2), 2, 'PartId set to 2');
+is($obj->ClauseId, 0, 'ClauseId should reset to 0');
+is($obj->SetPartId(3), 3, 'PartId set to 3');
+is($obj->ClauseId, 0, 'ClauseId should remain as 0');
+is($obj->SetClauseId(1), 1, 'ClauseId set to 1');
+
 is($obj->ClauseRemove, 0, 'Remove limit returns ClauseId to 0');
 is($obj->ClauseId, 0, 'ClauseId decrements to 0');
 is($obj->ClauseInsertLimit, 1, 'Insert limit increments ClauseId');
@@ -200,9 +211,13 @@ is($table->first_child('caption')->text,
 is($table->first_child('thead')->text,
     'IdTemplate100xId', 'Correctly renders thead');
 is($table->first_child('tbody')->text,
-    '1110022200', 'Correctly renders tbody');
+    '1110022200.........',
+    'Correctly renders tbody');
 is($table->first_child('tbody')->children,
-    2, 'Edit should only preserve 2 rows at most');
+    3, 'Edit should only preserve 2 rows, plus ...');
+is($table->last_child('tbody')->text,
+    'OPERATOR => <, VALUE => 20, FIELD => id',
+    'Correctly renders second tbody');
 
 # }}}
 # Navigation - Part - Graph: Insert, Change {{{
@@ -251,7 +266,7 @@ isa_ok($graph_as_table, 'XML::Twig::Elt', 'GraphAsTable from get_xpath');
 is($graph_as_table->first_child('thead')->text,
     'IdName', 'Correctly renders thead');
 is($graph_as_table->first_child('tbody')->text,
-    '9New Pending Approval10Approval Passed', 'Correctly renders tbody');
+    '9New Pending Approval10Approval Passed......', 'Correctly renders tbody');
 
 isa_ok($obj->PartObj->set_tag('graph'),
     'DBIx::ReportBuilder::Part::Graph', 'Table->set_tag("graph")');
@@ -260,7 +275,7 @@ isa_ok($obj->PartObj->set_tag('graph'),
 # Edit rendering - Part - Graph {{{
 
 my ($graph) = $obj->RenderEditObj->root->get_xpath(
-    '/div/table/tr[3]/td[2]/table/tr[2]/td/table'
+    '/div/table/tr[3]/td[2]/table/tr[2]/td/graph'
 );
 
 isa_ok($graph, 'XML::Twig::Elt', 'Graph from get_xpath');

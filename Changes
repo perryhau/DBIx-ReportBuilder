@@ -1,4 +1,36 @@
 ____________________________________________________________________________
+[  7998] By: autrijus                              on 2003/09/09  00:49:38
+        Log: * This be 0.00_04.
+	   ! MANIFEST lib/DBIx/ReportBuilder.pm t/1-basic.t
+____________________________________________________________________________
+[  7997] By: autrijus                              on 2003/09/09  00:48:25
+        Log: * more foolproof code to work around empty tags.
+	   ! lib/DBIx/ReportBuilder/Attribute.pm
+____________________________________________________________________________
+[  7995] By: autrijus                              on 2003/09/09  00:20:34
+        Log: * clause edit now works.
+	   ! lib/DBIx/ReportBuilder/Render/Edit.pm
+____________________________________________________________________________
+[  7993] By: autrijus                              on 2003/09/08  23:40:50
+        Log: * ClauseId now correctly gets reset to 0 after a SetPartId
+             toward other parts.
+	   ! lib/DBIx/ReportBuilder.pm lib/DBIx/ReportBuilder/Attribute.pm
+	   ! lib/DBIx/ReportBuilder/Part.pm
+	   ! lib/DBIx/ReportBuilder/Part/P.pm
+	   ! lib/DBIx/ReportBuilder/Render/Edit.pm t/1-basic.t
+____________________________________________________________________________
+[  7992] By: autrijus                              on 2003/09/08  22:34:50
+        Log: * beginning of interactive table construction UI code
+	   ! lib/DBIx/ReportBuilder.pm lib/DBIx/ReportBuilder/Attribute.pm
+	   ! lib/DBIx/ReportBuilder/Part.pm
+	   ! lib/DBIx/ReportBuilder/Render.pm
+	   ! lib/DBIx/ReportBuilder/Render/Edit.pm t/1-basic.t
+____________________________________________________________________________
+[  7986] By: autrijus                              on 2003/09/08  18:40:35
+        Log: * change attributes around a bit. more to come.
+	   ! lib/DBIx/ReportBuilder/Attribute.pm
+	   ! lib/DBIx/ReportBuilder/Render/Edit.pm t/1-basic.t
+____________________________________________________________________________
 [  7984] By: autrijus                              on 2003/09/08  17:11:41
         Log: * This be 0.00_03.
 	   ! MANIFEST Makefile.PL lib/DBIx/ReportBuilder.pm

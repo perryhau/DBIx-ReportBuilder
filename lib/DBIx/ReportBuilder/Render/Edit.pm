@@ -1,5 +1,5 @@
 # $File: //member/autrijus/DBIx-ReportBuilder/lib/DBIx/ReportBuilder/Render/Edit.pm $ $Author: autrijus $
-# $Revision: #3 $ $Change: 7980 $ $DateTime: 2003/09/08 15:37:26 $
+# $Revision: #7 $ $Change: 7995 $ $DateTime: 2003/09/09 00:20:34 $
 
 package DBIx::ReportBuilder::Render::Edit;
 use base 'DBIx::ReportBuilder::Render';
@@ -21,17 +21,18 @@ sub new {
 	    footer	=> \&section,
 	    postamble   => \&section,
 	    part	=> \&part,  # called indirectly
-
-	    p		=> \&p,
 	    include	=> \&include,
-	    img		=> \&img,
 
 	    var		=> \&var,
+	    joins	=> \&clauses,
+	    limits	=> \&clauses,
+	    orderbys	=> \&clauses,
 	    %{$args{twig_handlers}||{}},
 	},
 	start_tag_handlers => {
 	    content	=> \&enterContent,
 	    table	=> \&search,
+	    graph	=> \&search,
 	    %{$args{start_tag_handlers}||{}},
 	},
 	end_tag_handlers => {
@@ -91,21 +92,83 @@ sub section {
     1;
 }
 
-sub part {
-    my $self = shift;
-    my $part = shift;
-    my $type = $part->tag;
-    my $part_id = $self->NextPart;
-    my $rand = rand();
+sub clause {
+    my ($self, $clause, $clause_cur, $part_id) = @_;
+    my $clause_id = $1 if $clause->id =~ /(\d+)$/;
+    my $checked = ($clause_id eq $clause_cur);
+
+    $clause->set_att( bgcolor => ($checked ? '#6666cc' : 'gray') );
+
     my $trigger = "parent.property.location.href='Property.html?".
-		  "Type=$type&Id=$part_id&InContent=" . $self->inContent .
-		  "&InPart=$type'"; # XXX - rand?
-    my $checked = ($self->Object->PartId eq $part_id);
+		  "ClauseId=$clause_id&PartId=$part_id';";
+    $clause->set_att(
+	onclick => "ClearAway(this, 'th');$trigger",
+    );
     $self->Object->SetTrigger($trigger) if $checked;
+}
+
+sub table {
+    my $self    = shift;
+    my $part    = shift or return;
+    my $part_id = shift;
+    my $clause_cur = $self->Object->ClauseId;
+
+    my $cnt = 0;
+    foreach my $th ($part->find_nodes('thead/tr/th')) {
+	$th->insert_new_elt($self->type_icon('cell', 'left'));
+	$self->clause($th, $clause_cur, $part_id);
+	$cnt++;
+    }
+
+    $part->set_att(border => 3);
+    $part->set_att(bgcolor => '#c9c9c9');
+
+    my $tbody = $part->first_child('tbody');
+    if ($cnt) {
+	my $tr = $tbody->insert_new_elt(last_child => 'tr');
+	$tr->insert_new_elt('td', '...') for 1 .. $cnt;
+    }
+
+    my $clauses = $part->first_child('Clauses')->cut;
+    $clauses->children_count or return;
+
+    $tbody = $part->insert_new_elt(last_child => 'tbody');
+
+    foreach my $item ($clauses->children) {
+	foreach my $clause ($item->children) {
+	    my $th = $tbody->insert_new_elt(last_child => 'tr')
+		  ->insert_new_elt('th',
+		      { bgcolor => 'gray', colspan => ($cnt || 1),
+		        align => 'left', style => 'font-size: small' });
+	    $th->set_text( join(', ', map {
+		uc($_) . ' => ' . $clause->att($_)
+	    } grep !/^id$/, $clause->att_names ) );
+	    $th->insert_new_elt($self->type_icon($clause->tag, 'left'));
+	    $th->set_id($clause->id);
+	    $self->clause($th, $clause_cur, $part_id);
+	}
+    }
+}
+
+sub graph {
+}
+
+sub part {
+    my ($self, $part) = @_;
+    my $type = $part->tag;
+
+    my $part_id = $self->NextPart;
+    $self->$type($part, $part_id);
+
+    my $trigger = "parent.property.location.href='Property.html?".
+		  "PartId=$part_id'";
+    my $checked = ($self->Object->PartId eq $part_id);
+    $self->Object->SetTrigger($trigger)
+	if $checked and !$self->Object->Trigger;
     my $color = ($checked ? '#6666cc' : 'white');
     $part->wrap_in(
 	'td' => {
-	    id	=> "PART_$part_id",
+	    id	=> "Part$part_id",
 	    class => 'content',
 	    onclick => "ClearAway(this, 'td');" .
 			"if(clicked != 1){$trigger;};clicked=false",
@@ -116,25 +179,24 @@ sub part {
 	},
 	'tr' => { valign => 'top' },
     );
-    $part->insert_new_elt(
-	'before',
-	'img' => {
-	    width   => 19,
-	    height  => 19,
-	    align   => 'right',
-	    valign  => 'absmiddle',
-	    src	    => "/RG/img/obj\u$type.png",
-	    alt	    => $self->loc($type),
-	    title   => $self->loc($type),
-	    style   => 'background: #e0e0e0; border: 1px black ridge',
-	}
-    );
+    $part->parent->parent->insert_new_elt(
+	'last_child', 'td', { width => 19 }
+    )->insert_new_elt($self->type_icon($type));
 }
 
 sub search {
     my $self = shift;
     $_->set_att(rows => 2);
+    $_->insert_new_elt('Clauses');
     $self->NEXT::search(@_);
+}
+
+sub clauses {
+    my $self = shift;
+    my $item = $_;
+    $item->copy->paste( $item->parent->first_child('Clauses') );
+    my $method = "SUPER::" . $item->tag;
+    $self->$method(@_);
 }
 
 sub p {
@@ -152,7 +214,7 @@ sub include {
 }
 
 sub img {
-    $_->set_att('src' => '/RG/img/UploadIMG.png') unless $_->att;
+    $_->set_att('src' => '/RG/img/imgUpload.png') unless $_->att;
 }
 
 sub var {
@@ -164,5 +226,19 @@ sub var {
 sub inContent { $_[0]->{in_content} || 0 }
 sub enterContent { $_[0]->{in_content} = 1 }
 sub leaveContent { $_[0]->{in_content} = 0 }
+
+sub type_icon {
+    my ($self, $type, $align) = @_;
+    return 'img' => {
+	width   => 19,
+	height  => 19,
+	align   => ($align || 'right'),
+	valign  => 'absmiddle',
+	src	    => "/RG/img/obj\u$type.png",
+	alt	    => $self->loc($type),
+	title   => $self->loc($type),
+	style   => 'background: #e0e0e0; border: 1px black ridge',
+    }
+}
 
 1;

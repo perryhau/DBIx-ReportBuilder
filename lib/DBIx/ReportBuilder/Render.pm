@@ -1,5 +1,5 @@
 # $File: //member/autrijus/DBIx-ReportBuilder/lib/DBIx/ReportBuilder/Render.pm $ $Author: autrijus $
-# $Revision: #8 $ $Change: 7984 $ $DateTime: 2003/09/08 17:11:41 $
+# $Revision: #9 $ $Change: 7992 $ $DateTime: 2003/09/08 22:34:50 $
 
 package DBIx::ReportBuilder::Render;
 
@@ -18,8 +18,8 @@ sub new {
 	    orderby     => \&orderby,
 	    table	=> \&table,
 	    graph	=> \&graph,
-	    joins	=> sub { $_->delete },
-	    limits	=> sub { $_->delete },
+	    joins	=> \&joins,
+	    limits	=> \&limits,
 	    orderbys    => \&orderbys,
 	    %{$args{twig_handlers}||{}},
 	},
@@ -76,6 +76,7 @@ sub cells {
 	my $th = $tr->insert_new_elt(last_child => 'th');
 	$th->set_text($item->text);
 	$th->set_att( %{$_->atts} );
+	$th->set_id($item->id);
 	$item->set_tag('td');
     }
     my $tbody = $item->insert_new_elt(last_child => 'tbody');
@@ -111,6 +112,7 @@ sub table {
     my $self = shift;
     my $item = $_;
 
+    $item->set_att(width => '100%');
     $item->insert_new_elt('caption', {
 	map { $_ => $item->att($_) } grep { $item->att($_) } qw( font size )
     }, $item->att('caption') );
@@ -120,13 +122,14 @@ sub table {
 sub graph {
     my $self = shift;
     my $item = $_;
-    $item->set_tag('table');
-    return $self->table; # XXX
+    $_ = $item->insert('table');
+    return $self->table;
 }
 
 sub search {
     my $self = shift;
-    my $SB = $self->BaseClass->spawn(Search => ( Handle => $self->Object->Handle ));
+    my $Handle = $self->Object->Handle or die "No Handle";
+    my $SB = $self->BaseClass->spawn(Search => ( Handle => $Handle ));
     $SB->{table} = $_->att('table');
     $SB->UnLimit;
 
@@ -188,5 +191,8 @@ sub orderbys {
     $SB->OrderByCols( @$OrderBy ) if @$OrderBy;
     $_->delete;
 }
+
+sub joins { $_->delete }
+sub limits { $_->delete }
 
 1;

@@ -1,5 +1,5 @@
 # $File: //member/autrijus/DBIx-ReportBuilder/lib/DBIx/ReportBuilder/Part/P.pm $ $Author: autrijus $
-# $Revision: #3 $ $Change: 7980 $ $DateTime: 2003/09/08 15:37:26 $
+# $Revision: #4 $ $Change: 7993 $ $DateTime: 2003/09/08 23:40:50 $
 
 package DBIx::ReportBuilder::Part::P;
 use base 'DBIx::ReportBuilder::Part';
@@ -12,12 +12,6 @@ sub Insert {
     # special case: if we are empty, replace ourselves.
     $self->delete;
     return 0;
-}
-
-sub Change {
-    my ($self, %args) = @_;
-    $self->set_text( delete $args{text} ) if exists $args{text};
-    $self->SUPER::Change( %args );
 }
 
 use constant Inputs => (

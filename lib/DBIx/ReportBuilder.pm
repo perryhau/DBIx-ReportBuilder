@@ -1,8 +1,8 @@
 # $File: //member/autrijus/DBIx-ReportBuilder/lib/DBIx/ReportBuilder.pm $ $Author: autrijus $
-# $Revision: #12 $ $Change: 7984 $ $DateTime: 2003/09/08 17:11:41 $
+# $Revision: #15 $ $Change: 7998 $ $DateTime: 2003/09/09 00:49:38 $
 
 package DBIx::ReportBuilder;
-$DBIx::ReportBuilder::VERSION = '0.00_03';
+$DBIx::ReportBuilder::VERSION = '0.00_04';
 
 use strict;
 no warnings 'redefine';
@@ -16,8 +16,8 @@ DBIx::ReportBuilder - Interactive SQL report generator
 
 =head1 VERSION
 
-This document describes version 0.00_03 of DBIx::ReportBuilder, released
-September 10, 2003.
+This document describes version 0.00_04 of DBIx::ReportBuilder, released
+September 9, 2003.
 
 =head1 SYNOPSIS
 
@@ -69,6 +69,7 @@ the source distribution.
 use constant Sections	=> qw( preamble header content footer postamble );
 use constant Parts	=> qw( p img table graph include );
 use constant Clauses	=> qw( join limit orderby cell );
+use constant Vars	=> qw( page pagecount date time reportname );
 use constant Parameters	=> qw( loc handle trigger handle clause_id part_id );
 use constant BaseClass	=> __PACKAGE__;
 
@@ -178,12 +179,6 @@ sub Recount {
 
     $self->ResetCounts;
 
-    if (my $obj = $self->ClauseObj) {
-	# if clauseid no longer belong into part, adjust it to 0
-	$self->SetClauseId(0) if $obj->parent
-	    and $obj->parent->parent->id ne $self->PartObj->id;
-    }
-
     return $self->PartId unless wantarray;
     return ($self->PartId, $self->ClauseId);
 }
@@ -197,6 +192,18 @@ sub ClauseObj { +shift->_obj(Clause => @_) }
 sub NextPart   { 'Part' . ++$_[0]{next_part} }
 sub NextClause { 'Clause' . ++$_[0]{next_clause} }
 sub ResetCounts { $_[0]{next_part} = $_[0]{next_clause} = 0 }
+
+sub ClauseId {
+    my $self = shift;
+    $self->{clause_id} or return 0;
+    my $obj = $self->ClauseObj($self->{clause_id}) or return 0;
+
+    # if clause_id no longer belong into part, adjust it to 0
+    $self->{clause_id} = 0
+	if eval { $obj->parent->parent->id ne $self->PartObj->id };
+
+    return $self->{clause_id};
+}
 
 sub SetPartId {
     my ($self, $id) = @_;
