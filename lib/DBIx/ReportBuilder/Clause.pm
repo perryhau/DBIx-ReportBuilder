@@ -1,5 +1,5 @@
 # $File: //member/autrijus/DBIx-ReportBuilder/lib/DBIx/ReportBuilder/Clause.pm $ $Author: autrijus $
-# $Revision: #3 $ $Change: 7978 $ $DateTime: 2003/09/08 14:03:49 $
+# $Revision: #4 $ $Change: 8713 $ $DateTime: 2003/11/06 15:12:20 $
 
 package DBIx::ReportBuilder::Clause;
 
@@ -14,8 +14,13 @@ sub Insert {
 	if $self->parent and $self->parent->tag eq "${tag}s";
 
     # We don't have any siblings... paste into the collection object
+    my $parent = $args{Object}->PartObj->first_child("${tag}s");
+    if (!$parent) {
+	$parent = $self->new("${tag}s");
+	$parent->paste(last_child => $args{Object->PartObj});
+    }
     my $part = $self->new($tag, %args);
-    $part->paste(last_child => $args{Object}->PartObj->first_child("${tag}s"));
+    $part->paste(last_child => $parent);
     $part->Change(%args);
     return $part;
 }

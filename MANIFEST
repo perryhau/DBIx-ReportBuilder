@@ -1,14 +1,8 @@
 Changes
-MANIFEST			This list of files
-META.yml
-Makefile.PL
-README
-SIGNATURE
 eg/rg2pdf.bat
 inc/Module/Install.pm
 inc/Module/Install/Base.pm
 inc/Module/Install/Include.pm
-inc/Module/Install/MakeMaker.pm
 inc/Module/Install/Makefile.pm
 inc/Module/Install/Metadata.pm
 inc/Test/Builder.pm
@@ -17,6 +11,7 @@ lib/DBIx/ReportBuilder.pm
 lib/DBIx/ReportBuilder/Attribute.pm
 lib/DBIx/ReportBuilder/Clause.pm
 lib/DBIx/ReportBuilder/Clause/Cell.pm
+lib/DBIx/ReportBuilder/Clause/Groupby.pm
 lib/DBIx/ReportBuilder/Clause/Join.pm
 lib/DBIx/ReportBuilder/Clause/Limit.pm
 lib/DBIx/ReportBuilder/Clause/Orderby.pm
@@ -40,6 +35,11 @@ lib/DBIx/ReportBuilder/Render/XML.pm
 lib/DBIx/ReportBuilder/Search.pm
 lib/DBIx/ReportBuilder/Section.pm
 lib/DBIx/ReportBuilder/Variable.pm
+Makefile.PL
+MANIFEST			This list of files
+META.yml
+README
+SIGNATURE
 t/0-signature.t
 t/1-basic.t
 t/test.png

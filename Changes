@@ -1,4 +1,59 @@
 ____________________________________________________________________________
+[  8718] By: autrijus                              on 2003/11/06  15:58:58
+        Log: * This be 0.00_13.
+	   ! Makefile.PL
+____________________________________________________________________________
+[  8717] By: autrijus                              on 2003/11/06  15:55:51
+        Log: * fix case.
+	   ! lib/DBIx/ReportBuilder/Search.pm t/1-basic.t
+____________________________________________________________________________
+[  8716] By: autrijus                              on 2003/11/06  15:50:44
+        Log: * new rg2pdf.
+	   ! eg/rg2pdf.bat
+____________________________________________________________________________
+[  8715] By: autrijus                              on 2003/11/06  15:50:39
+        Log: * try avoiding conflict for same-table/field columns 
+	   ! lib/DBIx/ReportBuilder.pm
+	   ! lib/DBIx/ReportBuilder/Render.pm
+	   ! lib/DBIx/ReportBuilder/Search.pm
+____________________________________________________________________________
+[  8710] By: autrijus                              on 2003/11/06  14:19:40
+        Log: * oops, typo.
+	   ! lib/DBIx/ReportBuilder/Attribute.pm
+____________________________________________________________________________
+[  8709] By: autrijus                              on 2003/11/06  14:17:42
+        Log: * change test to reflect reality.
+	   ! t/1-basic.t
+____________________________________________________________________________
+[  8706] By: autrijus                              on 2003/11/06  14:16:05
+        Log: * GroupBy support.
+	   ! lib/DBIx/ReportBuilder.pm
+	   ! lib/DBIx/ReportBuilder/Attribute.pm
+	   ! lib/DBIx/ReportBuilder/Render.pm
+	   ! lib/DBIx/ReportBuilder/Search.pm
+____________________________________________________________________________
+[  8613] By: autrijus                              on 2003/10/29  06:05:35
+        Log: * no gain in maintaining ->Cell.
+	   ! lib/DBIx/ReportBuilder/Render.pm
+	   ! lib/DBIx/ReportBuilder/Search.pm
+____________________________________________________________________________
+[  8610] By: autrijus                              on 2003/10/29  03:17:42
+        Log: * Change "Cell" to "Columns" but maintain symtable compat.
+	   ! lib/DBIx/ReportBuilder/Search.pm
+____________________________________________________________________________
+[  8498] By: autrijus                              on 2003/10/20  01:44:12
+        Log: * nix undefined error.
+	   ! lib/DBIx/ReportBuilder/Attribute.pm
+____________________________________________________________________________
+[  8483] By: autrijus                              on 2003/10/19  02:31:51
+        Log: * strangely, case sensitiveness sometimes bites with mysql
+	       4.1
+	   ! lib/DBIx/ReportBuilder/Search.pm
+____________________________________________________________________________
+[  8477] By: autrijus                              on 2003/10/19  01:37:00
+        Log: * fix manifest.
+	   ! MANIFEST
+____________________________________________________________________________
 [  8476] By: autrijus                              on 2003/10/19  01:32:30
         Log: * This be 0.00_12.
 	   ! Makefile.PL lib/DBIx/ReportBuilder.pm
@@ -26,7 +81,8 @@ ____________________________________________________________________________
 [  8379] By: autrijus                              on 2003/10/12  15:13:09
         Log: * add ->SearchHook to further limit searchs
              * refactor ->Fields to ::Search.
-	   ! lib/DBIx/ReportBuilder.pm lib/DBIx/ReportBuilder/Attribute.pm
+	   ! lib/DBIx/ReportBuilder.pm
+	   ! lib/DBIx/ReportBuilder/Attribute.pm
 	   ! lib/DBIx/ReportBuilder/Render.pm
 	   ! lib/DBIx/ReportBuilder/Search.pm t/1-basic.t
 ____________________________________________________________________________
@@ -60,7 +116,8 @@ ____________________________________________________________________________
 [  8292] By: autrijus                              on 2003/09/28  23:47:26
         Log: * Hidden and Separator attributes are now honoured
              * PageSetup now affect print dimensions
-	   ! lib/DBIx/ReportBuilder.pm lib/DBIx/ReportBuilder/Render.pm
+	   ! lib/DBIx/ReportBuilder.pm
+	   ! lib/DBIx/ReportBuilder/Render.pm
 	   ! lib/DBIx/ReportBuilder/Render/HTML.pm
 	   ! lib/DBIx/ReportBuilder/Render/MSWord.pm
 	   ! lib/DBIx/ReportBuilder/Render/PDF.pm
@@ -126,8 +183,10 @@ ____________________________________________________________________________
 	   ! lib/DBIx/ReportBuilder.pm
 ____________________________________________________________________________
 [  8214] By: autrijus                              on 2003/09/23  04:29:48
-        Log: * 'cell' now takes a "table" attribute to display fields of joined tables.
-             * DBIx::ReportBuilder::Search now implements ->Cell to facilitate it.
+        Log: * 'cell' now takes a "table" attribute to display fields of
+	       joined tables.
+             * DBIx::ReportBuilder::Search now implements ->Cell to
+	       facilitate it.
 	   ! lib/DBIx/ReportBuilder/Render.pm
 	   ! lib/DBIx/ReportBuilder/Search.pm t/1-basic.t
 ____________________________________________________________________________
@@ -139,16 +198,19 @@ ____________________________________________________________________________
         Log: * This be 0.00_09.
              * properly skips pdf generation on machines without OOo.
              * avoid collision on Win32 when making tempfiles.
-	   ! lib/DBIx/ReportBuilder.pm lib/DBIx/ReportBuilder/Render/PDF.pm
+	   ! lib/DBIx/ReportBuilder.pm
+	   ! lib/DBIx/ReportBuilder/Render/PDF.pm
 	   ! t/1-basic.t
 ____________________________________________________________________________
 [  8168] By: autrijus                              on 2003/09/18  04:46:31
         Log: * pdf rendering works!
-	   ! lib/DBIx/ReportBuilder/Render/PDF.pm t/1-basic.t
+	   ! lib/DBIx/ReportBuilder/Render/PDF.pm
+	   ! t/1-basic.t
 ____________________________________________________________________________
 [  8167] By: autrijus                              on 2003/09/18  04:27:06
         Log: * first cut at pdf exporting.
-	   ! lib/DBIx/ReportBuilder/Render/PDF.pm t/1-basic.t
+	   ! lib/DBIx/ReportBuilder/Render/PDF.pm
+	   ! t/1-basic.t
 ____________________________________________________________________________
 [  8166] By: autrijus                              on 2003/09/18  02:09:44
         Log: * finally getting ooo pass.
@@ -171,7 +233,8 @@ ____________________________________________________________________________
 	   ! lib/DBIx/ReportBuilder/Attribute.pm
 ____________________________________________________________________________
 [  8112] By: autrijus                              on 2003/09/13  23:25:14
-        Log: * revert to the old file temp way because win32 doesn't like us.
+        Log: * revert to the old file temp way because win32 doesn't
+	       like us.
 	   ! lib/DBIx/ReportBuilder/Part.pm
 ____________________________________________________________________________
 [  8111] By: autrijus                              on 2003/09/13  22:59:30
@@ -188,12 +251,15 @@ ____________________________________________________________________________
 ____________________________________________________________________________
 [  8088] By: autrijus                              on 2003/09/13  00:24:02
         Log: * variables now no longer expires their current value upon
-             dump/restore; you have to call ->Reload explicitly to revert
+             dump/restore; you have to call ->Reload explicitly to
+	     revert
              them to default values.
-	   ! lib/DBIx/ReportBuilder.pm lib/DBIx/ReportBuilder/Variable.pm
+	   ! lib/DBIx/ReportBuilder.pm
+	   ! lib/DBIx/ReportBuilder/Variable.pm
 ____________________________________________________________________________
 [  8086] By: autrijus                              on 2003/09/12  23:37:14
-        Log: * add Var->IsUserDefined to distinguish immutable cells from mutable ones.
+        Log: * add Var->IsUserDefined to distinguish immutable cells
+	       from mutable ones.
 	   ! lib/DBIx/ReportBuilder/Variable.pm
 ____________________________________________________________________________
 [  8085] By: autrijus                              on 2003/09/12  23:33:34
@@ -212,13 +278,16 @@ ____________________________________________________________________________
         Log: * ->NewGraph is now ->GraphObj.
              * ->SearchObj and ->SectionObj added.
 	   + lib/DBIx/ReportBuilder/Section.pm
-	   ! lib/DBIx/ReportBuilder.pm lib/DBIx/ReportBuilder/Attribute.pm
+	   ! lib/DBIx/ReportBuilder.pm
+	   ! lib/DBIx/ReportBuilder/Attribute.pm
 	   ! lib/DBIx/ReportBuilder/Render.pm
-	   ! lib/DBIx/ReportBuilder/Render/Edit.pm t/1-basic.t
+	   ! lib/DBIx/ReportBuilder/Render/Edit.pm
+	   ! t/1-basic.t
 ____________________________________________________________________________
 [  8078] By: autrijus                              on 2003/09/12  19:10:30
         Log: * correctly display fields2 on join clauses.
-	   ! lib/DBIx/ReportBuilder/Attribute.pm t/1-basic.t
+	   ! lib/DBIx/ReportBuilder/Attribute.pm
+	   ! t/1-basic.t
 ____________________________________________________________________________
 [  8075] By: autrijus                              on 2003/09/12  17:31:20
         Log: * die with more information when png conversion fails.
@@ -244,7 +313,8 @@ ____________________________________________________________________________
 ____________________________________________________________________________
 [  8063] By: autrijus                              on 2003/09/12  01:08:45
         Log: * two oops in one.
-	   ! lib/DBIx/ReportBuilder/Render/HTML.pm t/1-basic.t
+	   ! lib/DBIx/ReportBuilder/Render/HTML.pm
+	   ! t/1-basic.t
 ____________________________________________________________________________
 [  8062] By: autrijus                              on 2003/09/12  01:05:14
         Log: * This be 0.00_06.
@@ -259,14 +329,17 @@ ____________________________________________________________________________
 ____________________________________________________________________________
 [  8059] By: autrijus                              on 2003/09/11  23:13:12
         Log: * preliminary Graph support.
-	   ! lib/DBIx/ReportBuilder.pm lib/DBIx/ReportBuilder/Part.pm
+	   ! lib/DBIx/ReportBuilder.pm
+	   ! lib/DBIx/ReportBuilder/Part.pm
 	   ! lib/DBIx/ReportBuilder/Render/Edit.pm
 ____________________________________________________________________________
 [  8058] By: autrijus                              on 2003/09/11  22:21:42
-        Log: * $ReportBuilder->NewGraph now creates graph objects.  Currently
+        Log: * $ReportBuilder->NewGraph now creates graph objects. 
+	       Currently
              only GD is supported.
 	   + lib/DBIx/ReportBuilder/Graph.pm
-	   ! lib/DBIx/ReportBuilder.pm lib/DBIx/ReportBuilder/Attribute.pm
+	   ! lib/DBIx/ReportBuilder.pm
+	   ! lib/DBIx/ReportBuilder/Attribute.pm
 	   ! lib/DBIx/ReportBuilder/Graph/GD.pm
 	   ! lib/DBIx/ReportBuilder/Render.pm t/1-basic.t
 ____________________________________________________________________________
@@ -277,9 +350,11 @@ ____________________________________________________________________________
 ____________________________________________________________________________
 [  8055] By: autrijus                              on 2003/09/11  20:21:27
         Log: * implements ->SectionId and ->SetSectionId plus tests.
-             * implements and test correct HTML rendering of Include parts.
+             * implements and test correct HTML rendering of Include
+	       parts.
 	   ! lib/DBIx/ReportBuilder.pm
-	   ! lib/DBIx/ReportBuilder/Render/HTML.pm t/1-basic.t
+	   ! lib/DBIx/ReportBuilder/Render/HTML.pm
+	   ! t/1-basic.t
 ____________________________________________________________________________
 [  8053] By: autrijus                              on 2003/09/11  16:19:19
         Log: * sprinkle some $::DEBUG statements.
@@ -292,8 +367,10 @@ ____________________________________________________________________________
 [  8047] By: autrijus                              on 2003/09/11  00:35:14
         Log: * Include support for inclusion of subreports.
              * Img support for uploading images and displaying them.
-             * Variables support for default and user-definable $var in texts.
-	   ! lib/DBIx/ReportBuilder.pm lib/DBIx/ReportBuilder/Attribute.pm
+             * Variables support for default and user-definable $var in
+	       texts.
+	   ! lib/DBIx/ReportBuilder.pm
+	   ! lib/DBIx/ReportBuilder/Attribute.pm
 	   ! lib/DBIx/ReportBuilder/Part.pm
 	   ! lib/DBIx/ReportBuilder/Render.pm
 	   ! lib/DBIx/ReportBuilder/Render/Edit.pm
@@ -306,13 +383,17 @@ ____________________________________________________________________________
 	   ! MANIFEST Makefile.PL t/1-basic.t
 ____________________________________________________________________________
 [  8037] By: autrijus                              on 2003/09/10  18:33:37
-        Log: * implement full variable support in p, limit:text and limit:formula.
-             * ->ucase and ->lcase now provides conversion between internal
+        Log: * implement full variable support in p, limit:text and
+	       limit:formula.
+             * ->ucase and ->lcase now provides conversion between
+	       internal
              and external name formats.
-             * $obj->Id now returns the numeric representation of its id.
+             * $obj->Id now returns the numeric representation of its
+	       id.
              * searchbuilder was failing on second search and on; fixed.
 	   + lib/DBIx/ReportBuilder/Variable.pm
-	   ! lib/DBIx/ReportBuilder.pm lib/DBIx/ReportBuilder/Attribute.pm
+	   ! lib/DBIx/ReportBuilder.pm
+	   ! lib/DBIx/ReportBuilder/Attribute.pm
 	   ! lib/DBIx/ReportBuilder/Part.pm
 	   ! lib/DBIx/ReportBuilder/Render.pm
 	   ! lib/DBIx/ReportBuilder/Render/Edit.pm
@@ -377,22 +458,27 @@ ____________________________________________________________________________
 [  7993] By: autrijus                              on 2003/09/08  23:40:50
         Log: * ClauseId now correctly gets reset to 0 after a SetPartId
              toward other parts.
-	   ! lib/DBIx/ReportBuilder.pm lib/DBIx/ReportBuilder/Attribute.pm
+	   ! lib/DBIx/ReportBuilder.pm
+	   ! lib/DBIx/ReportBuilder/Attribute.pm
 	   ! lib/DBIx/ReportBuilder/Part.pm
 	   ! lib/DBIx/ReportBuilder/Part/P.pm
-	   ! lib/DBIx/ReportBuilder/Render/Edit.pm t/1-basic.t
+	   ! lib/DBIx/ReportBuilder/Render/Edit.pm
+	   ! t/1-basic.t
 ____________________________________________________________________________
 [  7992] By: autrijus                              on 2003/09/08  22:34:50
         Log: * beginning of interactive table construction UI code
-	   ! lib/DBIx/ReportBuilder.pm lib/DBIx/ReportBuilder/Attribute.pm
+	   ! lib/DBIx/ReportBuilder.pm
+	   ! lib/DBIx/ReportBuilder/Attribute.pm
 	   ! lib/DBIx/ReportBuilder/Part.pm
 	   ! lib/DBIx/ReportBuilder/Render.pm
-	   ! lib/DBIx/ReportBuilder/Render/Edit.pm t/1-basic.t
+	   ! lib/DBIx/ReportBuilder/Render/Edit.pm
+	   ! t/1-basic.t
 ____________________________________________________________________________
 [  7986] By: autrijus                              on 2003/09/08  18:40:35
         Log: * change attributes around a bit. more to come.
 	   ! lib/DBIx/ReportBuilder/Attribute.pm
-	   ! lib/DBIx/ReportBuilder/Render/Edit.pm t/1-basic.t
+	   ! lib/DBIx/ReportBuilder/Render/Edit.pm
+	   ! t/1-basic.t
 ____________________________________________________________________________
 [  7984] By: autrijus                              on 2003/09/08  17:11:41
         Log: * This be 0.00_03.
@@ -406,25 +492,29 @@ ____________________________________________________________________________
 ____________________________________________________________________________
 [  7982] By: autrijus                              on 2003/09/08  16:37:54
         Log: <* Atts and Values now has cryptocontext.
-	   ! lib/DBIx/ReportBuilder.pm lib/DBIx/ReportBuilder/Attribute.pm
+	   ! lib/DBIx/ReportBuilder.pm
+	   ! lib/DBIx/ReportBuilder/Attribute.pm
 	   ! t/1-basic.t
 ____________________________________________________________________________
 [  7981] By: autrijus                              on 2003/09/08  16:27:28
         Log: * finished an "interesting" attribute metadata system.
 	   + lib/DBIx/ReportBuilder/Attribute.pm
-	   ! lib/DBIx/ReportBuilder.pm lib/DBIx/ReportBuilder/Part.pm
+	   ! lib/DBIx/ReportBuilder.pm
+	   ! lib/DBIx/ReportBuilder/Part.pm
 	   ! lib/DBIx/ReportBuilder/Part/Graph.pm
 	   ! lib/DBIx/ReportBuilder/Render.pm t/1-basic.t
 ____________________________________________________________________________
 [  7980] By: autrijus                              on 2003/09/08  15:37:26
         Log: * streamlined the Attr interface.
-	   ! lib/DBIx/ReportBuilder.pm lib/DBIx/ReportBuilder/Graph.pm
+	   ! lib/DBIx/ReportBuilder.pm
+	   ! lib/DBIx/ReportBuilder/Graph.pm
 	   ! lib/DBIx/ReportBuilder/Part.pm
 	   ! lib/DBIx/ReportBuilder/Part/Graph.pm
 	   ! lib/DBIx/ReportBuilder/Part/P.pm
 	   ! lib/DBIx/ReportBuilder/Part/Table.pm
 	   ! lib/DBIx/ReportBuilder/Render.pm
-	   ! lib/DBIx/ReportBuilder/Render/Edit.pm t/1-basic.t
+	   ! lib/DBIx/ReportBuilder/Render/Edit.pm
+	   ! t/1-basic.t
 ____________________________________________________________________________
 [  7979] By: autrijus                              on 2003/09/08  14:56:36
         Log: * seriously clean up clkao's graph code and merge it in.
@@ -432,7 +522,8 @@ ____________________________________________________________________________
 ____________________________________________________________________________
 [  7978] By: autrijus                              on 2003/09/08  14:03:49
         Log: * finished join, limit, orderby semantic.
-	   ! lib/DBIx/ReportBuilder.pm lib/DBIx/ReportBuilder/Clause.pm
+	   ! lib/DBIx/ReportBuilder.pm
+	   ! lib/DBIx/ReportBuilder/Clause.pm
 	   ! lib/DBIx/ReportBuilder/Part.pm
 	   ! lib/DBIx/ReportBuilder/Render.pm t/1-basic.t
 ____________________________________________________________________________
@@ -440,9 +531,11 @@ ____________________________________________________________________________
         Log: * graph can now be inserted by subclassing it to table.
              * cells now takes "formula" for safe, perl-based eval.
              ($_ means the field, $otherfieldname refers to other)
-	   ! lib/DBIx/ReportBuilder.pm lib/DBIx/ReportBuilder/Part/Graph.pm
+	   ! lib/DBIx/ReportBuilder.pm
+	   ! lib/DBIx/ReportBuilder/Part/Graph.pm
 	   ! lib/DBIx/ReportBuilder/Render.pm
-	   ! lib/DBIx/ReportBuilder/Render/Edit.pm t/1-basic.t
+	   ! lib/DBIx/ReportBuilder/Render/Edit.pm
+	   ! t/1-basic.t
 ____________________________________________________________________________
 [  7974] By: autrijus                              on 2003/09/08  07:27:58
         Log: * plan on reportbuilder tests
@@ -476,8 +569,8 @@ ____________________________________________________________________________
         Log: * add Render::XML.
              * Render now defaults to HTML unless explicitly asked.
 	   + lib/DBIx/ReportBuilder/Render/XML.pm
-	   ! lib/DBIx/ReportBuilder.pm lib/DBIx/ReportBuilder/Render.pm
-	   ! t/1-basic.t
+	   ! lib/DBIx/ReportBuilder.pm
+	   ! lib/DBIx/ReportBuilder/Render.pm t/1-basic.t
 ____________________________________________________________________________
 [  7955] By: autrijus                              on 2003/09/07  22:39:24
         Log: * complete clause/part/renders set.
@@ -505,11 +598,12 @@ ____________________________________________________________________________
 ____________________________________________________________________________
 [  7952] By: autrijus                              on 2003/09/07  20:09:05
         Log: * initial check-in of DBIx::ReportBuilder.
-	   + MANIFEST Makefile.PL README lib/DBIx/ReportBuilder.pm
+	   + MANIFEST Makefile.PL README
+	   + lib/DBIx/ReportBuilder.pm
 	   + lib/DBIx/ReportBuilder/Clause.pm
 	   + lib/DBIx/ReportBuilder/Part.pm
 	   + lib/DBIx/ReportBuilder/Part/Img.pm
 	   + lib/DBIx/ReportBuilder/Part/P.pm
 	   + lib/DBIx/ReportBuilder/Render.pm
-	   + lib/DBIx/ReportBuilder/Render/Edit.pm t/0-signature.t
-	   + t/1-basic.t
+	   + lib/DBIx/ReportBuilder/Render/Edit.pm
+	   + t/0-signature.t t/1-basic.t

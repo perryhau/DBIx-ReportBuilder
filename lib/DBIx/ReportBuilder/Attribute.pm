@@ -1,20 +1,22 @@
 # $File: //member/autrijus/DBIx-ReportBuilder/lib/DBIx/ReportBuilder/Attribute.pm $ $Author: autrijus $
-# $Revision: #30 $ $Change: 8385 $ $DateTime: 2003/10/12 16:24:57 $
+# $Revision: #36 $ $Change: 8713 $ $DateTime: 2003/11/06 15:12:20 $
 
 package DBIx::ReportBuilder::Attribute;
 use strict;
+no warnings 'redefine';
 
 sub new {
     my $class = shift;
     return bless({ @_ }, $class);
 }
 
-sub Att	    { $_[0]{Att} }
-sub Tag	    { $_[0]{Tag} }
-sub Object  { $_[0]{Object} }
-sub Name    { $_[0]->Object->ucase($_[0]{Att}) }
-sub Type    { $_[0]->Data->{$_[0]->{Att}}->{type} }
-sub ReportBuilderObj { $_[0]->Object->twig }
+sub Att			{ $_[0]{Att}				}
+sub Tag			{ $_[0]{Tag}				}
+sub Object		{ $_[0]{Object}				}
+sub TableObj		{ $_[0]{Object}->parent->parent		}
+sub Name		{ $_[0]->Object->ucase($_[0]{Att})	}
+sub Type		{ $_[0]->Data->{$_[0]->{Att}}->{type}	}
+sub ReportBuilderObj	{ $_[0]->Object->twig			}
 
 sub Value {
     my $self = shift;
@@ -55,10 +57,10 @@ sub Default {
 sub Applicable {
     return if !$_[0]->Attribute2Tags->{$_[0]->{Att}}{$_[0]->Tag || ''};
     my $rv = $_[0]->Data->{$_[0]->{Att}}->{applicable} or return 1;
-    return $rv->($_[0]);
+    return eval { $rv->($_[0]) };
 }
 
-use constant Tag2Attributes => {
+sub Tag2Attributes () { {
     p           => [ qw( font size border align text ) ],
     img         => [ qw( width height src ) ],
     include     => [ qw( report ) ],
@@ -68,10 +70,11 @@ use constant Tag2Attributes => {
     join	=> [ qw( table field table2 field2 ) ], # type
     limit	=> [ qw( table field operator text ) ], # entryaggregator 
     orderby	=> [ qw( table field order ) ],
-    cell	=> [ qw( table field font size align formula text ) ],
-};
+    groupby	=> [ qw( table field ) ],
+    cell	=> [ qw( table field font size align function formula text ) ],
+} };
 
-use constant Data => {
+sub Data () { {
     align		=> {
 	type		=> 'radio',
 	values		=> [qw( left center right )],
@@ -89,7 +92,7 @@ use constant Data => {
 	values		=> \&_fields,
 	applicable	=> sub {
 	    $_[0]->Object->att('table') or
-	    $_[0]->Object->parent->parent->att('table')
+	    $_[0]->TableObj->att('table')
 	},
     },
     field2		=> {
@@ -103,6 +106,11 @@ use constant Data => {
     },
     formula		=> {
 	type		=> 'text',
+    },
+    function		=> {
+	type		=> 'select',
+	values		=> ['', qw( COUNT SUM MAX MIN AVG DISTINCTCOUNT )],
+	applicable	=> sub { $_[0]->TableObj->first_child('groupbys')->children_count },
     },
     height		=> {
 	type		=> 'number',
@@ -134,7 +142,7 @@ use constant Data => {
     table		=> {
 	type		=> 'data_source',
 	values		=> \&_tables,
-	default		=> sub { $_[0]->Object->parent->parent->att('table') },
+	default		=> sub { $_[0]->TableObj->att('table') },
     },
     table2		=> {
 	type		=> 'data_source',
@@ -236,16 +244,15 @@ use constant Data => {
 	applicable	=> sub { $_[0]->Object->att('threed') },
 	default		=> 1,
     },
-};
+} };
 
-use constant Attribute2Tags => do {
-    my %a2t; 
-    while (my ($k, $v) = each %{+Tag2Attributes}) {
-	$a2t{$_}{$k}++ for @$v;
-    }
-    $a2t{$_}{''}++ for keys %a2t;
-    \%a2t;
-};
+my %a2t; 
+my $t2a = +Tag2Attributes;
+while (my ($k, $v) = each %$t2a) {
+    $a2t{$_}{$k}++ for @$v;
+}
+$a2t{$_}{''}++ for keys %a2t;
+sub Attribute2Tags () { \%a2t }
 
 sub _fonts { 'serif', 'sans serif', 'monotype' }
 
@@ -253,7 +260,7 @@ sub _fields {
     my $self = shift;
     my $att  = shift || 'table';
     my $obj  = $self->Object;
-    my $table = $obj->att($att) || $obj->parent->parent->att($att) or return;
+    my $table = $obj->att($att) || $self->TableObj->att($att) or return;
     return $obj->twig->SearchObj->Fields($table);
 }
 
@@ -272,7 +279,7 @@ sub _tables {
     else {
 	# limit only to those accessible by us
 	my %tables;
-	my $obj = $self->Object->parent->parent or return;
+	my $obj = $self->TableObj or return;
 	$tables{ $obj->att('table') }++;
 	foreach my $clause ($obj->first_child('joins')->children) {
 	    $tables{ $clause->att('table2') }++;

@@ -1,5 +1,5 @@
 # $File: //member/autrijus/DBIx-ReportBuilder/t/1-basic.t $ $Author: autrijus $
-# $Revision: #42 $ $Change: 8383 $ $DateTime: 2003/10/12 15:28:02 $
+# $Revision: #44 $ $Change: 8717 $ $DateTime: 2003/11/06 15:55:51 $
 
 use Test::More tests => 177;
 use FindBin;
@@ -245,7 +245,7 @@ is($obj->PartObj->tag, 'table', 'Really inserted');
 isa_ok($obj->PartObj, 'DBIx::ReportBuilder::Part::Table');
 is_deeply(
     [map $_->tag, $obj->PartObj->children],
-    [qw(joins limits orderbys cells)],
+    [qw(joins limits groupbys orderbys cells)],
     'New table has subelements'
 );
 is($obj->RenderEdit, $obj->RenderEdit, 'RenderEdit consistency');
@@ -358,7 +358,7 @@ is($obj->PartObj->tag, 'graph', 'Really inserted');
 isa_ok($obj->PartObj, 'DBIx::ReportBuilder::Part::Graph');
 is_deeply(
     [map $_->tag, $obj->PartObj->children],
-    [qw(joins limits orderbys cells)],
+    [qw(joins limits groupbys orderbys cells)],
     'New graph has subelements'
 );
 is($obj->PartChange( table => 'templates', rows => 10, text => 'Template List' ),

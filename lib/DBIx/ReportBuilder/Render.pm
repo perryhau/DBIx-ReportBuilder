@@ -1,5 +1,5 @@
 # $File: //member/autrijus/DBIx-ReportBuilder/lib/DBIx/ReportBuilder/Render.pm $ $Author: autrijus $
-# $Revision: #24 $ $Change: 8383 $ $DateTime: 2003/10/12 15:28:02 $
+# $Revision: #27 $ $Change: 8715 $ $DateTime: 2003/11/06 15:50:39 $
 
 package DBIx::ReportBuilder::Render;
 
@@ -17,11 +17,13 @@ sub new {
 	    cell	=> \&cell,
 	    limit	=> \&limit,
 	    orderby     => \&orderby,
+	    groupby     => \&groupby,
 	    table	=> \&table,
 	    graph	=> \&graph,
 	    joins	=> \&joins,
 	    limits	=> \&limits,
 	    orderbys    => \&orderbys,
+	    groupbys    => \&groupbys,
 	    var		=> \&var,
 	    meta	=> \&meta,
 	    include	=> \&include,
@@ -124,10 +126,7 @@ sub _do_search {
 	my $td_cnt = -1; ++$tr_cnt;
 	foreach my $item (@$children) {
 	    my $td = $item->copy;
-	    my $text = $Record->{
-		lc($td->att('table') || $SB->{table}) . '_' .
-		lc($td->att('field'))
-	    };
+	    my $text = $Record->{$item->att('#Column')};
 	    my $formula = $td->att('formula');
 	    if (defined($formula) and length($formula)) {
 		my $safe = Safe->new;
@@ -177,7 +176,7 @@ sub graph {
 sub search {
     my $self = shift;
     my $SB = $self->Object->SearchObj or die "Cannot make Search";
-    $SB->{table} = $_->att('table');
+    $SB->SetTable($_->att('table'));
     $SB->UnLimit;
 
     if (my $item = $_->att('rows')) {
@@ -188,8 +187,11 @@ sub search {
     }
 
     $_->set_att(
-	'#Tables'	    => { $SB->{table} => '' },	# key: table, val: alias
+	'#Tables'	    => {
+	    ($SB->Table) => ''		# key: table, val: alias
+	},
 	'#OrderBy'	    => [],	# passed to OrderByCols
+	'#GroupBy'	    => [],	# passed to GroupByCols
 	'#SearchBuilder'    => $SB,	# SearchBuilder object
 	'#Result'	    => [],	# result set
 	'#Headers'	    => [],	# header set
@@ -230,10 +232,10 @@ sub limit {
 sub cell {
     my $item = $_;
     my $SB = $item->parent->parent->att('#SearchBuilder');
-    $SB->Cell(
+    $item->set_att('#Column', $SB->Column(
 	(map { uc($_) => $item->att($_) } $item->att_names),
 	_alias($item),
-    );
+    ));
 }
 
 sub orderby {
@@ -250,6 +252,23 @@ sub orderbys {
     my $SB      = $item->parent->att('#SearchBuilder');
     my $OrderBy = $item->parent->att('#OrderBy');
     $SB->OrderByCols( @$OrderBy ) if @$OrderBy;
+    $_->delete;
+}
+
+sub groupby {
+    my $item = $_;
+    my $GroupBy = $item->parent->parent->att('#GroupBy');
+    push @$GroupBy, {
+	(map { uc($_) => $item->att($_) } $item->att_names),
+	_alias($item),
+    }
+}
+
+sub groupbys {
+    my $item    = $_;
+    my $SB      = $item->parent->att('#SearchBuilder');
+    my $GroupBy = $item->parent->att('#GroupBy');
+    $SB->GroupByCols( @$GroupBy ) if @$GroupBy;
     $_->delete;
 }
 

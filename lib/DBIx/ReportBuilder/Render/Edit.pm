@@ -1,5 +1,5 @@
 # $File: //member/autrijus/DBIx-ReportBuilder/lib/DBIx/ReportBuilder/Render/Edit.pm $ $Author: autrijus $
-# $Revision: #16 $ $Change: 8084 $ $DateTime: 2003/09/12 23:33:10 $
+# $Revision: #17 $ $Change: 8712 $ $DateTime: 2003/11/06 15:01:35 $
 
 package DBIx::ReportBuilder::Render::Edit;
 use base 'DBIx::ReportBuilder::Render';
@@ -27,6 +27,7 @@ sub new {
 	    joins	=> \&clauses,
 	    limits	=> \&clauses,
 	    orderbys	=> \&clauses,
+	    groupbys	=> \&clauses,
 	    table	=> \&twigTable,
 	    graph	=> \&twigGraph,
 	    %{$args{twig_handlers}||{}},

@@ -1,8 +1,8 @@
 # $File: //member/autrijus/DBIx-ReportBuilder/lib/DBIx/ReportBuilder.pm $ $Author: autrijus $
-# $Revision: #37 $ $Change: 8476 $ $DateTime: 2003/10/19 01:32:30 $
+# $Revision: #40 $ $Change: 8715 $ $DateTime: 2003/11/06 15:50:39 $
 
 package DBIx::ReportBuilder;
-$DBIx::ReportBuilder::VERSION = '0.00_12';
+$DBIx::ReportBuilder::VERSION = '0.00_13';
 
 use strict;
 no warnings 'redefine';
@@ -16,8 +16,8 @@ DBIx::ReportBuilder - Interactive SQL report generator
 
 =head1 VERSION
 
-This document describes version 0.00_12 of DBIx::ReportBuilder, released
-October 19, 2003.
+This document describes version 0.00_13 of DBIx::ReportBuilder, released
+November 6, 2003.
 
 =head1 SYNOPSIS
 
@@ -68,7 +68,7 @@ the source distribution.
 
 use constant Sections	=> qw( preamble header content footer postamble );
 use constant Parts	=> qw( p img table graph include );
-use constant Clauses	=> qw( join limit orderby cell );
+use constant Clauses	=> qw( join limit groupby orderby cell );
 use constant Parameters	=> qw( name handle trigger clause_id part_id );
 use constant Callbacks	=> qw( loc search_hook describe_report render_report );
 use constant BaseClass	=> __PACKAGE__;

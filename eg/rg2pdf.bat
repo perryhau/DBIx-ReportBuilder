@@ -13,7 +13,10 @@ goto endofperl
 #!perl
 #line 15
 use strict;
+use FindBin;
 use File::Spec;
+use lib "$FindBin::Bin/../lib";
+use lib "$FindBin::Bin/../../rt/local/lib";
 my $basedir = File::Spec->catdir($ENV{WINDIR}, 'TEMP', 'RG');
 while (1) {
     sleep 1;
@@ -21,9 +24,11 @@ while (1) {
     foreach my $file (<$basedir/*.htm>) {
 	open FH, $file or next;
         my $path;
-	my $is_msword;
+	my ($is_msword, $is_msexcel, $is_print);
 	while (<FH>) {
-	    $is_msword = 1 if m{MSWord};
+	    $is_msword = 1 if m{HTML2MSWord};
+	    $is_msexcel = 1 if m{HTML2MSExcel};
+	    $is_print = 1 if m{HTML2Print};
 	    last if ($path) = m{"(file://.*)/"};
         }
         close FH;
@@ -43,30 +48,41 @@ while (1) {
 
 	$v1->{Name} = "Hidden";
 	$v1->{Value} = 1;
+	my $params = [ $v1 ];
+
+	if ($is_msexcel or $is_msword) {
+	    my $v2 = $objServiceManager->Bridge_GetStruct(
+		"com.sun.star.beans.PropertyValue"
+	    );
+	    $v2->{Name} = "FilterName";
+	    $v2->{Value} = "HTML (StarCalc)" if $is_msexcel;
+	    $v2->{Value} = "HTML (StarWriter)" if $is_msword;
+	    push @$params, $v2;
+	}
+
 
 	my $objDocument = $objDesktop->loadComponentFromURL(
-	    "$path/out.html", "_blank", 0, [$v1],
+	    "$path/out.html", "_blank", 0, $params,
 	);
-
-	$v1->{Name} = "FilterName";
-	$v1->{Value} = ($is_msword ? "writer_web_StarOffice_XML_Writer" : "writer_web_pdf_Export");
 
 	if ($objDocument) {
 	    if ($is_msword) {
-		$objDocument->storeToURL( "$path/out.sxw", [$v1] );
-		$objDocument->dispose;
-
-		$v1->{Name} = "Hidden";
-		$v1->{Value} = 1;
-		$objDocument = $objDesktop->loadComponentFromURL(
-		    "$path/out.sxw", "_blank", 0, [$v1],
-		);
-
 		$v1->{Name} = "FilterName";
 		$v1->{Value} = "MS Word 97";
 		$objDocument->storeToURL( "$path/out.doc", [$v1] );
 	    }
+	    elsif ($is_msexcel) {
+		$v1->{Name} = "FilterName";
+		$v1->{Value} = "MS Excel 97";
+		$objDocument->storeToURL( "$path/out.xls", [$v1] );
+	    }
+	    elsif ($is_print) {
+		$objDocument->print( [] );
+		$objDocument->storeToURL( "$path/out.prn", [] );
+	    }
 	    else {
+		$v1->{Name} = "FilterName";
+		$v1->{Value} = "writer_web_pdf_Export";
 		$objDocument->storeToURL( "$path/out.pdf", [$v1] );
 	    }
 	    $objDocument->dispose;

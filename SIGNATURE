@@ -1,5 +1,5 @@
 This file contains message digests of all files listed in MANIFEST,
-signed via the Module::Signature module, version 0.35.
+signed via the Module::Signature module, version 0.37.
 
 To verify the content in this distribution, first make sure you have
 Module::Signature installed, then type:
@@ -14,24 +14,24 @@ not run its Makefile.PL or Build.PL.
 -----BEGIN PGP SIGNED MESSAGE-----
 Hash: SHA1
 
-SHA1 f1ad073391f5d3d3602369ad1e748dbb07af5b9f Changes
-SHA1 b997337da5df2ccbdc389c8c089c2940033ecb53 MANIFEST
-SHA1 818ca4454bcc637a628f457b2c1043d42933c417 META.yml
-SHA1 3168d65c4ec30603738a527d5cc5d554afcc754f Makefile.PL
+SHA1 4c1aa2ca7267236fa766a5ea0a893724003568fc Changes
+SHA1 6d7ec92cfd0bd27c863795f4645ab27e3ada3fd1 MANIFEST
+SHA1 d3321244add04f29c5bdda5fbf5c5b0757677af0 META.yml
+SHA1 8b3f181f36de974eeba583ea6fc1b9713026e6ae Makefile.PL
 SHA1 912078e74abaf07861ff6417f1ef84c6f86a0344 README
-SHA1 42904d838fd9d1f58b37ae16948468b38d48f367 eg/rg2pdf.bat
-SHA1 9a48700879e8032dd5b96ffaa27f59641e2bc9af inc/Module/Install.pm
+SHA1 8e5f2898c0b6b02662eb1c2cc42dd83c2073f516 eg/rg2pdf.bat
+SHA1 8b4877cb0aae407fcb37a4ac31f2f943bfbe2fe4 inc/Module/Install.pm
 SHA1 019bccc5b2e364447c6e6e150d049ca2a216598e inc/Module/Install/Base.pm
 SHA1 c1e427c1f670a187cb663e8e446193bbce16b92f inc/Module/Install/Include.pm
-SHA1 e2547371d0317abbfa3d56b0d20bba909885d7db inc/Module/Install/MakeMaker.pm
-SHA1 2a6f3921bb5c83e95856664ff5cbea98bdc43674 inc/Module/Install/Makefile.pm
-SHA1 722f8b5df4795ab97cb65538b19758d874b961eb inc/Module/Install/Metadata.pm
+SHA1 8508e76cf6417588c0118ec85f7d56be15383c00 inc/Module/Install/Makefile.pm
+SHA1 ef550fd641db011c741402b799ace0a446f8d8ec inc/Module/Install/Metadata.pm
 SHA1 e28bb5a620a5c392b06450778d35cf1707bdca97 inc/Test/Builder.pm
-SHA1 ae7b5b4c6e437454712eccfa5c09e0c95560b5c5 inc/Test/More.pm
-SHA1 2b46efcabde5cb670c48bf1ae477a8fd3287147d lib/DBIx/ReportBuilder.pm
-SHA1 883e52079624ba94f35e9348652d5abf62b72a30 lib/DBIx/ReportBuilder/Attribute.pm
-SHA1 499d1cf761e3d8e93bcebd1b11414e7e7c33db10 lib/DBIx/ReportBuilder/Clause.pm
+SHA1 43dcc5ca8a2b8b891ec467726c9f9c9454dac597 inc/Test/More.pm
+SHA1 974bcd8fac6e42fd267cdb127b379a0783dfdf9f lib/DBIx/ReportBuilder.pm
+SHA1 c6e97ff490c24066f5a4442420218fd5636e58f7 lib/DBIx/ReportBuilder/Attribute.pm
+SHA1 a698c52f7b293ba0d6e972b17cda80f72dd96a0e lib/DBIx/ReportBuilder/Clause.pm
 SHA1 9322d80aaeaee64b2c9d9ecd9b871eee93fa0cd9 lib/DBIx/ReportBuilder/Clause/Cell.pm
+SHA1 95e038d062fb3632dd700c85963122f327e201d7 lib/DBIx/ReportBuilder/Clause/Groupby.pm
 SHA1 feb9fadaaeac056abfc7d715e148e8735f25f3cd lib/DBIx/ReportBuilder/Clause/Join.pm
 SHA1 08b8766acbddaebbbeead95a7df9c08df73a9b9c lib/DBIx/ReportBuilder/Clause/Limit.pm
 SHA1 67d22e98c36191edb7ca43952849a006082e6c89 lib/DBIx/ReportBuilder/Clause/Orderby.pm
@@ -43,8 +43,8 @@ SHA1 069d1b199e657d09f658e1e8a6bc40ce9fbd3ff3 lib/DBIx/ReportBuilder/Part/Img.pm
 SHA1 af414aea5baccd0e8b03160d852023313553fd2f lib/DBIx/ReportBuilder/Part/Include.pm
 SHA1 3e145628e06b49274504ac299f69c62cf44a8a21 lib/DBIx/ReportBuilder/Part/P.pm
 SHA1 edc869f937f2e2667699dd0082e612645ecb3ec3 lib/DBIx/ReportBuilder/Part/Table.pm
-SHA1 2aa7916a303ea213f23fb787068fc38f7140abd3 lib/DBIx/ReportBuilder/Render.pm
-SHA1 ee63fc4c80a34564896143cbe80b37ca4e843906 lib/DBIx/ReportBuilder/Render/Edit.pm
+SHA1 64d0b7cab8010fa3252a1a618ebc65b29d6fab53 lib/DBIx/ReportBuilder/Render.pm
+SHA1 cdc389919e044b18b10c94845924b2507d89f749 lib/DBIx/ReportBuilder/Render/Edit.pm
 SHA1 7a75c8850e569f31ec74c15444e3b9644c431544 lib/DBIx/ReportBuilder/Render/HTML.pm
 SHA1 5ffe89568b67870618f24d954437332aac553328 lib/DBIx/ReportBuilder/Render/MSExcel.pm
 SHA1 c2a3615e41f236f00f2e8b14d5e7561a773b22b1 lib/DBIx/ReportBuilder/Render/MSWord.pm
@@ -52,16 +52,16 @@ SHA1 52499d00db99f3bb89ae629bed6ed663d07a5312 lib/DBIx/ReportBuilder/Render/PDF.
 SHA1 ed652a0dc53b1bcade56e75507ca7c69a8b3abea lib/DBIx/ReportBuilder/Render/Print.pm
 SHA1 b445062f3f5f3663d586fd647f2e8058050ae505 lib/DBIx/ReportBuilder/Render/SXW.pm
 SHA1 226e2c9c7c28632621e1ca58fd0094861fcc3b17 lib/DBIx/ReportBuilder/Render/XML.pm
-SHA1 227e4635757b819b0738cee6738a8196d4d4eb83 lib/DBIx/ReportBuilder/Search.pm
+SHA1 21d33a86715fe6c429312cc0162ba95d8f91d917 lib/DBIx/ReportBuilder/Search.pm
 SHA1 1c08e176247a63f86859fe76c1631c60af556ae9 lib/DBIx/ReportBuilder/Section.pm
 SHA1 2620d31b963af6dd1af2b88ff54d142c1908d142 lib/DBIx/ReportBuilder/Variable.pm
 SHA1 58a7fde085ea4524ed8f02f9f9282af0fd601ea2 t/0-signature.t
-SHA1 5cde180e89778c5d337373237ce87a50c277d7a4 t/1-basic.t
+SHA1 2defa596e043c2c4001e6e74f1706c59098a5554 t/1-basic.t
 SHA1 eaf7e5fd9e7ce8548c2ac0761229bb5502605953 t/test.png
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.3 (FreeBSD)
 
-iD8DBQE/kerRtLPdNzw1AaARAl+4AKCChnUs1X0d4/sE6qPmrWzk7r2SMQCgtQtr
-WYmWWOwTu/H+IqzcvDGh4vE=
-=ojSF
+iD8DBQE/qnG5tLPdNzw1AaARAkK9AKCPYY++MvMrDnuY/cuPDDufMA3dOgCfeMnh
+0b+iZ+iWK1B5XJyFYi2vGUI=
+=VxPD
 -----END PGP SIGNATURE-----
